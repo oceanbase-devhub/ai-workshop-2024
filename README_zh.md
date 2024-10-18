@@ -41,7 +41,13 @@ python3 -m pip install poetry
 
 #### 1.1 启动 OceanBase docker 容器
 
-您可以使用以下命令启动一个 OceanBase docker 容器：
+如果你是第一次登录动手实战营提供的机器，你需要通过以下命令启动 Docker 服务：
+
+```bash
+systemctl start docker
+```
+
+随后您可以使用以下命令启动一个 OceanBase docker 容器：
 
 ```bash
 docker run --ulimit stack=4294967296 --name=ob433 -e MODE=mini -e OB_MEMORY_LIMIT=8G -e OB_DATAFILE_SIZE=10G -p 127.0.0.1:2881:2881 -d quay.io/oceanbase/oceanbase-ce:4.3.3.0-100000142024101215
@@ -125,6 +131,13 @@ mysql -h127.0.0.1 -P2881 -uroot@test -A -e "show databases"
 
 ### 2. 安装依赖
 
+接下来，您需要切换到动手实战营的项目目录，并且使用 Git 拉取最新的代码：
+
+```bash
+cd ~/ai-workshop-2024
+git pull
+```
+
 我们使用 Poetry 来管理聊天机器人项目的依赖项。您可以使用以下命令安装依赖项：
 
 ```bash
@@ -157,7 +170,7 @@ LLM_BASE_URL="https://open.bigmodel.cn/api/paas/v4/"
 LLM_MODEL="glm-4-flash"
 
 HF_ENDPOINT=https://hf-mirror.com
-BGE_MODEL_PATH=BAAI/bge-m3
+BGE_MODEL_PATH=/root/bge-m3-model
 
 DB_HOST="127.0.0.1"
 DB_PORT="2881"

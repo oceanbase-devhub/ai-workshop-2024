@@ -39,7 +39,13 @@ python3 -m pip install poetry
 
 #### 1.1 Start an OceanBase docker container
 
-You can start an OceanBase docker container with the following command:
+If you are the first time to login to the machine provided by the workshop, you need to start the docker service with the following command:
+
+```bash
+systemctl start docker
+```
+
+And then, you can start an OceanBase docker container with the following command:
 
 ```bash
 docker run --ulimit stack=4294967296 --name=ob433 -e MODE=mini -e OB_MEMORY_LIMIT=8G -e OB_DATAFILE_SIZE=10G -p 127.0.0.1:2881:2881 -d quay.io/oceanbase/oceanbase-ce:4.3.3.0-100000142024101215
@@ -123,6 +129,13 @@ If the deployment is successful, you will see the following output:
 
 ### 2. Install dependencies
 
+First of all, you need to change to the directory of the workshop project and pull the latest code from the repository:
+
+```bash
+cd ~/ai-workshop-2024
+git pull
+```
+
 We use Poetry to manage the dependencies of the chatbot project. You can install the dependencies with the following command:
 
 ```bash
@@ -155,7 +168,7 @@ LLM_BASE_URL="https://open.bigmodel.cn/api/paas/v4/"
 LLM_MODEL="glm-4-flash"
 
 HF_ENDPOINT=https://hf-mirror.com
-BGE_MODEL_PATH=BAAI/bge-m3
+BGE_MODEL_PATH=/root/bge-m3-model
 
 DB_HOST="127.0.0.1"
 DB_PORT="2881"
