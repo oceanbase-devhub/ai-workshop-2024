@@ -1,3 +1,8 @@
+import os
+import dotenv
+
+dotenv.load_dotenv()
+
 from typing import Iterator, Union
 from rag.doc_rag import doc_rag_stream
 
@@ -37,6 +42,30 @@ st.title("💬 RAG ChatBot")
 st.caption("🚀 A chatbot powered by OceanBase, ZhipuAI and Streamlit")
 st.logo("demo/logo.png")
 
+with st.sidebar:
+    st.subheader("🔧Settings")
+    st.text_input(
+        "TABLE_NAME",
+        value=os.getenv("TABLE_NAME", "corpus"),
+        disabled=True,
+        help="The table name of the data in the database.",
+    )
+    llm_model = st.selectbox(
+        "LLM Model",
+        ["glm-4-flash", "glm-4-air", "glm-4-plus"],
+        index=0,
+    )
+    oceanbase_only = st.checkbox(
+        "Only OceanBase",
+        True,
+        help="Only answer OceanBase related questions",
+    )
+    rerank = st.checkbox(
+        "Rerank",
+        False,
+        help="Rerank retrieved documents using the bge-m3 model to enhance generation, which is quite a slow process.",
+    )
+
 if "messages" not in st.session_state:
     st.session_state["messages"] = [
         {"role": "assistant", "content": "您好，请问有什么可以帮助您的吗？"}
@@ -75,6 +104,9 @@ if prompt := st.chat_input("请输入您想咨询的问题..."):
     it = doc_rag_stream(
         query=prompt,
         chat_history=remove_refs(history),
+        universal_rag=not oceanbase_only,
+        rerank=rerank,
+        llm_model=llm_model,
     )
 
     with st.status("Processing", expanded=True) as status:

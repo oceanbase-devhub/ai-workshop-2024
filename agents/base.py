@@ -17,7 +17,7 @@ from langchain_openai import ChatOpenAI
 
 def get_model(**kwargs) -> ChatOpenAI:
     model = ChatOpenAI(
-        model=os.getenv("LLM_MODEL", "qwen-plus"),
+        model=kwargs.pop("llm_model", os.getenv("LLM_MODEL", "qwen-plus")),
         temperature=0.2,
         max_tokens=2000,
         api_key=os.environ["API_KEY"],

@@ -8,9 +8,11 @@ from typing import Iterator, Optional, Union
 from langchain_core.messages import AIMessageChunk
 from rag.embeddings import get_embedding
 from rag.documents import Document, DocumentMeta, component_mapping as cm
-from agents.rag_agent import rag_agent
-from agents.intent_guard_agent import guard_agent as iga
-from agents.comp_analyzing_agent import component_analyzing_agent as caa
+from agents.base import AgentBase
+from agents.rag_agent import prompt as rag_prompt
+from agents.universe_rag_agent import prompt as universal_rag_prompt
+from agents.intent_guard_agent import prompt as guard_prompt
+from agents.comp_analyzing_agent import prompt as caa_prompt
 from connection import connection_args
 from sqlalchemy import Column, Integer
 
@@ -102,144 +104,171 @@ def doc_rag_stream(
     query: str,
     chat_history: list[dict],
     suffixes: list[any] = [],
+    universal_rag: bool = False,
+    llm_model: str = "glm-4-flash",
+    rerank: bool = False,
     **kwargs,
 ) -> Iterator[Union[str, AIMessageChunk]]:
     """
     Stream the response from the RAG model.
     """
     start_time = time.time()
-    yield "Recognizing intents of the question..." + get_elapsed_tips(
-        start_time, start_time
-    )
-    guard_res = iga.invoke_json(query)
-    query_type = guard_res.get("type", "特性问题")
+    if not universal_rag:
+        yield "Recognizing intents of the question..." + get_elapsed_tips(
+            start_time, start_time
+        )
+        iga = AgentBase(prompt=guard_prompt, llm_model=llm_model)
+        guard_res = iga.invoke_json(query)
+        query_type = guard_res.get("type", "特性问题")
+        rag_agent = AgentBase(prompt=rag_prompt, llm_model=llm_model)
+        if query_type == "闲聊":
+            yield "Not related to OceanBase" + get_elapsed_tips(start_time)
+            yield None
+            for chunk in rag_agent.stream(query, chat_history, document_snippets=""):
+                yield chunk
+            return
+        else:
+            yield "Analyzing related components..." + get_elapsed_tips(start_time)
+            caa_agent = AgentBase(prompt=caa_prompt, llm_model=llm_model)
+            analyze_res = caa_agent.invoke_json(
+                query,
+                background_history=chat_history,
+                supported_components=supported_components,
+            )
+            related_comps: list[str] = analyze_res.get("components", ["observer"])
 
-    if query_type == "闲聊":
-        yield "Not related to OceanBase" + get_elapsed_tips(start_time)
-        yield None
-        for chunk in rag_agent.stream(query, chat_history, document_snippets=""):
-            yield chunk
+            for comp in related_comps:
+                if comp not in supported_components:
+                    related_comps.remove(comp)
+
+            if "observer" not in related_comps:
+                related_comps.append("observer")
+
+            print("related_comps", related_comps)
+            docs = []
+
+            rerankable = (
+                rerank or os.getenv("ENABLE_RERANK", None) == "true"
+            ) and getattr(embeddings, "rerank", None) is not None
+
+            limit = 10 if rerankable else max(3, 13 - 3 * len(related_comps))
+            total_docs = []
+
+            yield f"Embedding the question..." + get_elapsed_tips(start_time)
+            query_embedded = embeddings.embed_query(query)
+
+            for comp in related_comps:
+                yield f"Searching documents related to {comp}..." + get_elapsed_tips(
+                    start_time
+                )
+                total_docs.extend(
+                    doc_search_by_vector(
+                        query_embedded,
+                        partition_names=[comp],
+                        limit=limit,
+                    )
+                )
+
+            if rerankable and len(related_comps) > 1:
+                yield "Reranking documents..." + get_elapsed_tips(start_time)
+                total_docs = embeddings.rerank(query, total_docs)
+                docs = total_docs[:10]
+            else:
+                docs = total_docs
+
     else:
-        yield "Analyzing related components..." + get_elapsed_tips(start_time)
-
-        analyze_res = caa.invoke_json(
-            query,
-            background_history=chat_history,
-            supported_components=supported_components,
-        )
-        related_comps: list[str] = analyze_res.get("components", ["observer"])
-
-        for comp in related_comps:
-            if comp not in supported_components:
-                related_comps.remove(comp)
-
-        if "observer" not in related_comps:
-            related_comps.append("observer")
-
-        print("related_comps", related_comps)
-        docs = []
-        rerankable = (
-            os.getenv("ENABLE_RERANK", None) == "true"
-            and getattr(embeddings, "rerank", None) is not None
-        )
-        limit = 10 if rerankable else max(3, 13 - 3 * len(related_comps))
-        total_docs = []
-
         yield f"Embedding the question..." + get_elapsed_tips(start_time)
         query_embedded = embeddings.embed_query(query)
 
-        for comp in related_comps:
-            yield f"Searching documents related to {comp}..." + get_elapsed_tips(
-                start_time
-            )
-            total_docs.extend(
-                doc_search_by_vector(
-                    query_embedded,
-                    partition_names=[comp],
-                    limit=limit,
-                )
-            )
-
-        if rerankable and len(related_comps) > 1:
-            yield "Reranking documents..." + get_elapsed_tips(start_time)
-            total_docs = embeddings.rerank(query, total_docs)
-            docs = total_docs[:10]
-        else:
-            docs = total_docs
-
-        yield "The LLM is thinking..." + get_elapsed_tips(start_time)
-
-        docs_content = "\n=====\n".join(
-            [f"文档片段:\n\n" + chunk.page_content for i, chunk in enumerate(docs)]
+        yield f"Searching documents related to the question..." + get_elapsed_tips(
+            start_time
+        )
+        docs = doc_search_by_vector(
+            query_embedded,
+            limit=10,
         )
 
+    yield "The LLM is thinking..." + get_elapsed_tips(start_time)
+
+    docs_content = "\n=====\n".join(
+        [f"文档片段:\n\n" + chunk.page_content for i, chunk in enumerate(docs)]
+    )
+
+    if universal_rag:
+        universal_rag_agent = AgentBase(
+            prompt=universal_rag_prompt, llm_model=llm_model
+        )
+        ans_itr = universal_rag_agent.stream(
+            query, chat_history, document_snippets=docs_content
+        )
+    else:
         ans_itr = rag_agent.stream(query, chat_history, document_snippets=docs_content)
 
+    visited = {}
+    count = 0
+    buffer: str = ""
+    pruned_references = []
+    get_first_token = False
+    whole = ""
+    for chunk in ans_itr:
+        whole += chunk.content
+        buffer += chunk.content
+        if "[" in buffer and len(buffer) < 128:
+            matches = re.findall(doc_cite_pattern, buffer)
+            if len(matches) == 0:
+                continue
+            else:
+                sorted(matches, key=lambda x: x[0], reverse=True)
+                for m, order in matches:
+                    doc = docs[int(order) - 1]
+                    meta = DocumentMeta.model_validate(doc.metadata)
+                    doc_name = meta.doc_name
+                    doc_url = replace_doc_url(meta.doc_url)
+                    idx = count + 1
+                    if doc_url in visited:
+                        idx = visited[doc_url]
+                    else:
+                        visited[doc_url] = idx
+                        doc_text = f"{idx}. [{doc_name}]({doc_url})"
+                        pruned_references.append(doc_text)
+                        count += 1
+
+                    ref_text = f"[[{idx}]]({doc_url})"
+                    buffer = buffer.replace(m, ref_text)
+
+        if not get_first_token:
+            get_first_token = True
+            yield None
+        yield AIMessageChunk(content=buffer)
+        buffer = ""
+
+    print("\n\n=== RAW Output ===\n\n" + whole, "\n\n===\n\n")
+
+    if len(buffer) > 0:
+        yield AIMessageChunk(content=buffer)
+
+    ref_tip = "根据向量相似性匹配检索到的相关文档如下:"
+
+    if len(pruned_references) > 0:
+        yield AIMessageChunk(content="\n\n" + ref_tip)
+
+        for ref in pruned_references:
+            yield AIMessageChunk(content="\n" + ref)
+
+    elif len(docs) > 0:
+        yield AIMessageChunk(content="\n\n" + ref_tip)
+
         visited = {}
-        count = 0
-        buffer: str = ""
-        pruned_references = []
-        get_first_token = False
-        whole = ""
-        for chunk in ans_itr:
-            whole += chunk.content
-            buffer += chunk.content
-            if "[" in buffer and len(buffer) < 128:
-                matches = re.findall(doc_cite_pattern, buffer)
-                if len(matches) == 0:
-                    continue
-                else:
-                    sorted(matches, key=lambda x: x[0], reverse=True)
-                    for m, order in matches:
-                        doc = docs[int(order) - 1]
-                        meta = DocumentMeta.model_validate(doc.metadata)
-                        doc_name = meta.doc_name
-                        doc_url = replace_doc_url(meta.doc_url)
-                        idx = count + 1
-                        if doc_url in visited:
-                            idx = visited[doc_url]
-                        else:
-                            visited[doc_url] = idx
-                            doc_text = f"{idx}. [{doc_name}]({doc_url})"
-                            pruned_references.append(doc_text)
-                            count += 1
-
-                        ref_text = f"[[{idx}]]({doc_url})"
-                        buffer = buffer.replace(m, ref_text)
-
-            if not get_first_token:
-                get_first_token = True
-                yield None
-            yield AIMessageChunk(content=buffer)
-            buffer = ""
-
-        print("\n\n=== RAW Output ===\n\n" + whole, "\n\n===\n\n")
-
-        if len(buffer) > 0:
-            yield AIMessageChunk(content=buffer)
-
-        ref_tip = "根据向量相似性匹配检索到的相关文档如下:"
-
-        if len(pruned_references) > 0:
-            yield AIMessageChunk(content="\n\n" + ref_tip)
-
-            for ref in pruned_references:
-                yield AIMessageChunk(content="\n" + ref)
-
-        elif len(docs) > 0:
-            yield AIMessageChunk(content="\n\n" + ref_tip)
-
-            visited = {}
-            for doc in docs:
-                meta = DocumentMeta.model_validate(doc.metadata)
-                doc_name = meta.doc_name
-                doc_url = replace_doc_url(meta.doc_url)
-                if doc_url in visited:
-                    continue
-                visited[doc_url] = True
-                count = len(visited)
-                doc_text = f"{count}. [{doc_name}]({doc_url})"
-                yield AIMessageChunk(content="\n" + doc_text)
+        for doc in docs:
+            meta = DocumentMeta.model_validate(doc.metadata)
+            doc_name = meta.doc_name
+            doc_url = replace_doc_url(meta.doc_url)
+            if doc_url in visited:
+                continue
+            visited[doc_url] = True
+            count = len(visited)
+            doc_text = f"{count}. [{doc_name}]({doc_url})"
+            yield AIMessageChunk(content="\n" + doc_text)
 
     for suffix in suffixes:
         yield AIMessageChunk(content=suffix + "\n")
