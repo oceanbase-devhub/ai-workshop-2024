@@ -1,0 +1,9 @@
+*.env*
+!.env.example
+.venv
+logs/
+__pycache__
+doc_repos/**
+*.db
+!.gitkeep
+.DS_Store
