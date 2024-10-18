@@ -129,11 +129,10 @@ If the deployment is successful, you will see the following output:
 
 ### 2. Install dependencies
 
-First of all, you need to change to the directory of the workshop project and pull the latest code from the repository:
+First of all, you need to change to the directory of the workshop project:
 
 ```bash
 cd ~/ai-workshop-2024
-git pull
 ```
 
 We use Poetry to manage the dependencies of the chatbot project. You can install the dependencies with the following command:
@@ -340,6 +339,10 @@ You can also set `ECHO=true` before launch the chat UI to see the SQL statements
 ```bash
 ECHO=true TABLE_NAME=my_table poetry run streamlit run --server.runOnSave false chat_ui.py
 ```
+
+### 4. Why my modification to the environment variables in the `.env` file is not working?
+
+You need to restart the chat UI after modifying the `.env` file to make the changes take effect. You can stop the chat UI by pressing `Ctrl+C` in the terminal and then start it again.
 
 ## Appendix
 

@@ -131,11 +131,10 @@ mysql -h127.0.0.1 -P2881 -uroot@test -A -e "show databases"
 
 ### 2. 安装依赖
 
-接下来，您需要切换到动手实战营的项目目录，并且使用 Git 拉取最新的代码：
+接下来，您需要切换到动手实战营的项目目录：
 
 ```bash
 cd ~/ai-workshop-2024
-git pull
 ```
 
 我们使用 Poetry 来管理聊天机器人项目的依赖项。您可以使用以下命令安装依赖项：
@@ -342,6 +341,10 @@ CREATE TABLE my_table (
 ```bash
 ECHO=true TABLE_NAME=my_table poetry run streamlit run --server.runOnSave false chat_ui.py
 ```
+
+### 4. 为什么我编辑了 .env 文件没有生效？
+
+如果你编辑了 .env 文件或者是代码文件，需要重启 UI 服务才能生效。你可以通过 `Ctrl + C` 终止服务，然后重新运行 `poetry run streamlit run --server.runOnSave false chat_ui.py` 来重启服务。
 
 ## 附录
 
