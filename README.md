@@ -340,7 +340,7 @@ You can also set `ECHO=true` before launch the chat UI to see the SQL statements
 ECHO=true TABLE_NAME=my_table poetry run streamlit run --server.runOnSave false chat_ui.py
 ```
 
-### 4. Why my modification to the environment variables in the `.env` file is not working?
+### 4. Why my modification to the environment variables in the `.env` file after the chat UI has started does not take effect?
 
 You need to restart the chat UI after modifying the `.env` file to make the changes take effect. You can stop the chat UI by pressing `Ctrl+C` in the terminal and then start it again.
 

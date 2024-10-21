@@ -342,7 +342,7 @@ CREATE TABLE my_table (
 ECHO=true TABLE_NAME=my_table poetry run streamlit run --server.runOnSave false chat_ui.py
 ```
 
-### 4. 为什么我编辑了 .env 文件没有生效？
+### 4. 为什么我在启动 UI 服务后再编辑 .env 文件不再生效？
 
 如果你编辑了 .env 文件或者是代码文件，需要重启 UI 服务才能生效。你可以通过 `Ctrl + C` 终止服务，然后重新运行 `poetry run streamlit run --server.runOnSave false chat_ui.py` 来重启服务。
 
