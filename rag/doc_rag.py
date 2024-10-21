@@ -107,12 +107,23 @@ def doc_rag_stream(
     universal_rag: bool = False,
     llm_model: str = "glm-4-flash",
     rerank: bool = False,
+    search_docs: bool = True,
     **kwargs,
 ) -> Iterator[Union[str, AIMessageChunk]]:
     """
     Stream the response from the RAG model.
     """
     start_time = time.time()
+    if not search_docs:
+        yield None
+        universal_rag_agent = AgentBase(
+            prompt=universal_rag_prompt, llm_model=llm_model
+        )
+        ans_itr = universal_rag_agent.stream(query, chat_history, document_snippets="")
+        for chunk in ans_itr:
+            yield chunk
+        return
+
     if not universal_rag:
         yield "Recognizing intents of the question..." + get_elapsed_tips(
             start_time, start_time
