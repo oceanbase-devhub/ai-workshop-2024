@@ -49,7 +49,7 @@ class AgentBase:
         self.__name: str = kwargs.pop("name", default_name)
         self.logger = logging.getLogger(self.__name)
         self.logger.addHandler(logging.StreamHandler(sys.stdout))
-        log_level = logging.INFO
+        log_level = kwargs.pop("log_level", logging.INFO)
         self.logger.setLevel(log_level)
         self.__usage_logger = logging.getLogger(f"usage.{self.__name}")
         self.__usage_logger.setLevel(log_level)
@@ -95,7 +95,7 @@ class AgentBase:
         self,
         query: str,
         history: list[BaseMessage] = [],
-        retry_count: int = 9,
+        retry_count: int = 1,
         **kwargs,
     ) -> dict[str, any]:
         count = 0

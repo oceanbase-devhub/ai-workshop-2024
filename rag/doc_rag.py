@@ -97,7 +97,14 @@ def get_elapsed_tips(
 ) -> str:
     end_time = end_time or time.time()
     elapsed_time = end_time - start_time
-    return f" (elapsed {elapsed_time:.2f}s)"
+    return f" (已耗时 {elapsed_time:.2f}s)"
+
+
+def extract_users_input(history: list[dict]) -> str:
+    """
+    Extract the user's input from the chat history.
+    """
+    return "\n".join([msg["content"] for msg in history if msg["role"] == "user"])
 
 
 def doc_rag_stream(
@@ -125,28 +132,35 @@ def doc_rag_stream(
         return
 
     if not universal_rag:
-        yield "Recognizing intents of the question..." + get_elapsed_tips(
-            start_time, start_time
-        )
-        iga = AgentBase(prompt=guard_prompt, llm_model=llm_model)
+        yield "正在分析问题意图..." + get_elapsed_tips(start_time, start_time)
+        iga = AgentBase(prompt=guard_prompt, llm_model="glm-4-flash")
         guard_res = iga.invoke_json(query)
-        query_type = guard_res.get("type", "特性问题")
+        if hasattr(guard_res, "get"):
+            query_type = guard_res.get("type", "特性问题")
+        else:
+            query_type = "特性问题"
         rag_agent = AgentBase(prompt=rag_prompt, llm_model=llm_model)
         if query_type == "闲聊":
-            yield "Not related to OceanBase" + get_elapsed_tips(start_time)
+            yield "该问题与 OceanBase 无关" + get_elapsed_tips(start_time)
             yield None
             for chunk in rag_agent.stream(query, chat_history, document_snippets=""):
                 yield chunk
             return
         else:
-            yield "Analyzing related components..." + get_elapsed_tips(start_time)
-            caa_agent = AgentBase(prompt=caa_prompt, llm_model=llm_model)
+            yield "正在分析该问题涉及的 OceanBase 组件..." + get_elapsed_tips(
+                start_time
+            )
+            history_text = extract_users_input(chat_history)
+            caa_agent = AgentBase(prompt=caa_prompt, llm_model="glm-4-flash")
             analyze_res = caa_agent.invoke_json(
-                query,
-                background_history=chat_history,
+                query="\n".join([history_text, query]),
+                background_history=[],
                 supported_components=supported_components,
             )
-            related_comps: list[str] = analyze_res.get("components", ["observer"])
+            if hasattr(analyze_res, "get"):
+                related_comps: list[str] = analyze_res.get("components", ["observer"])
+            else:
+                related_comps = ["observer"]
 
             for comp in related_comps:
                 if comp not in supported_components:
@@ -155,7 +169,10 @@ def doc_rag_stream(
             if "observer" not in related_comps:
                 related_comps.append("observer")
 
-            print("related_comps", related_comps)
+            yield f"该问题涉及的 OceanBase 组件为 {', '.join(related_comps)}" + get_elapsed_tips(
+                start_time
+            )
+
             docs = []
 
             rerankable = (
@@ -165,11 +182,13 @@ def doc_rag_stream(
             limit = 10 if rerankable else max(3, 13 - 3 * len(related_comps))
             total_docs = []
 
-            yield f"Embedding the question..." + get_elapsed_tips(start_time)
+            yield f"正在使用深度学习模型将提问的文本嵌入为向量..." + get_elapsed_tips(
+                start_time
+            )
             query_embedded = embeddings.embed_query(query)
 
             for comp in related_comps:
-                yield f"Searching documents related to {comp}..." + get_elapsed_tips(
+                yield f"正在使用 OceanBase 搜索与 {comp} 有关的文档..." + get_elapsed_tips(
                     start_time
                 )
                 total_docs.extend(
@@ -181,17 +200,19 @@ def doc_rag_stream(
                 )
 
             if rerankable and len(related_comps) > 1:
-                yield "Reranking documents..." + get_elapsed_tips(start_time)
+                yield "正在重新排序文档..." + get_elapsed_tips(start_time)
                 total_docs = embeddings.rerank(query, total_docs)
                 docs = total_docs[:10]
             else:
                 docs = total_docs
 
     else:
-        yield f"Embedding the question..." + get_elapsed_tips(start_time)
+        yield f"正在使用深度学习模型将提问的文本嵌入为向量..." + get_elapsed_tips(
+            start_time
+        )
         query_embedded = embeddings.embed_query(query)
 
-        yield f"Searching documents related to the question..." + get_elapsed_tips(
+        yield f"正在使用 OceanBase 搜索与提问相关的文档..." + get_elapsed_tips(
             start_time
         )
         docs = doc_search_by_vector(
@@ -199,7 +220,7 @@ def doc_rag_stream(
             limit=10,
         )
 
-    yield "The LLM is thinking..." + get_elapsed_tips(start_time)
+    yield "大语言模型正在思考..." + get_elapsed_tips(start_time)
 
     docs_content = "\n=====\n".join(
         [f"文档片段:\n\n" + chunk.page_content for i, chunk in enumerate(docs)]

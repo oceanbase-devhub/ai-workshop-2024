@@ -37,9 +37,9 @@ class StreamResponse:
         return self.__whole_msg
 
 
-st.set_page_config(page_title="RAG ChatBot", page_icon="demo/ob-icon.png")
-st.title("💬 RAG ChatBot")
-st.caption("🚀 A chatbot powered by OceanBase, ZhipuAI and Streamlit")
+st.set_page_config(page_title="RAG 智能问答助手", page_icon="demo/ob-icon.png")
+st.title("💬 智能问答助手")
+st.caption("🚀 使用 OceanBase 向量检索特性和大语言模型能力构建的智能问答机器人")
 st.logo("demo/logo.png")
 
 env_table_name = os.getenv("TABLE_NAME", "corpus")
@@ -124,10 +124,10 @@ if prompt := st.chat_input("请输入您想咨询的问题..."):
         search_docs=search_docs,
     )
 
-    with st.status("Processing", expanded=True) as status:
+    with st.status("处理中...", expanded=True) as status:
         for msg in it:
             if not isinstance(msg, str):
-                status.update(label="Finish thinking!")
+                status.update(label="思考完毕！")
                 break
             st.write(msg)
 
