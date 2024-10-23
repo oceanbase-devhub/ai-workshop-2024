@@ -169,7 +169,7 @@ LLM_BASE_URL="https://open.bigmodel.cn/api/paas/v4/"
 LLM_MODEL="glm-4-flash"
 
 HF_ENDPOINT=https://hf-mirror.com
-BGE_MODEL_PATH=/root/bge-m3-model
+BGE_MODEL_PATH=BAAI/bge-m3
 
 DB_HOST="127.0.0.1"
 DB_PORT="2881"
@@ -188,7 +188,7 @@ BGE-M3 是一个预训练模型，可以将文本转换为向量。它在多种�
 poetry run python utils/prepare_bgem3.py
 ```
 
-在实战训练营提供的机器上模型已经下载完成。如果模型已经下载完成，这一步大约需要半分钟来加载模型。当模型准备好时，您将看到以下消息：
+BGE-M3 模型文件大小约为 2 ~ 3 GB，下载过程可能会花费较长时间，具体时间取决于您的网络状况。如果模型已经下载完成，这一步大约需要半分钟来加载模型。当模型准备好时，您将看到以下消息：
 
 ```bash
 Fetching 30 files: 100%|████████████████████████████████████████████████████████████████| 30/30 [00:00<00:00, 104509.24it/s]
@@ -204,7 +204,7 @@ BGEM3FlagModel loaded successfully！
 
 ### 5. 准备文档数据
 
-#### 5.1 下载预处理数据并加载（速度快）
+#### 5.1 下载预处理数据并加载（速度快，仅限动手实战营活动中使用）
 
 在这一步中，我们将加载预处理的文档数据到 OceanBase 数据库中。
 

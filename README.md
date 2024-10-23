@@ -167,7 +167,7 @@ LLM_BASE_URL="https://open.bigmodel.cn/api/paas/v4/"
 LLM_MODEL="glm-4-flash"
 
 HF_ENDPOINT=https://hf-mirror.com
-BGE_MODEL_PATH=/root/bge-m3-model
+BGE_MODEL_PATH=BAAI/bge-m3
 
 DB_HOST="127.0.0.1"
 DB_PORT="2881"
@@ -186,7 +186,7 @@ Execute the following command to prepare the BGE-M3 model:
 poetry run python utils/prepare_bgem3.py
 ```
 
-The model is already downloaded on the machines provided by the workshop. If the model is already downloaded, this step takes about half a minute to load the model. When the model is ready, you will see the following message:
+The size of BGE-M3 model is about 2 ~ 3 GB, so it will take some time to download it which depends on network situation. If the model is already downloaded, this step takes about half a minute to load the model. When the model is ready, you will see the following message:
 
 ```bash
 Fetching 30 files: 100%|████████████████████████████████████████████████████████████████| 30/30 [00:00<00:00, 104509.24it/s]
@@ -202,7 +202,7 @@ BGEM3FlagModel loaded successfully！
 
 ### 5. Prepare document data
 
-#### 5.1 Download pre-processed data and load it (Fast)
+#### 5.1 Download pre-processed data and load it (Fast, for Workshop Only)
 
 In this step, we will load the pre-processed document data into the oceanbase database.
 
