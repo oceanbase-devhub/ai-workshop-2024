@@ -161,10 +161,16 @@ def doc_rag_stream(
                 related_comps: list[str] = analyze_res.get("components", ["observer"])
             else:
                 related_comps = ["observer"]
-
+            
+            visited = set()
             for comp in related_comps:
                 if comp not in supported_components:
                     related_comps.remove(comp)
+                    continue
+                if comp in visited:
+                    related_comps.remove(comp)
+                    continue
+                visited.add(comp)
 
             if "observer" not in related_comps:
                 related_comps.append("observer")
