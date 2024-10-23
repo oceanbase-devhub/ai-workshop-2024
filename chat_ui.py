@@ -113,7 +113,7 @@ def remove_refs(history: list[dict]) -> list[dict]:
 if prompt := st.chat_input("请输入您想咨询的问题..."):
     st.chat_message("user", avatar=avatar_m["user"]).write(prompt)
 
-    history = st.session_state["messages"][-history_len:]
+    history = st.session_state["messages"][-history_len:] if history_len > 0 else []
 
     it = doc_rag_stream(
         query=prompt,
