@@ -343,19 +343,3 @@ ECHO=true TABLE_NAME=my_table poetry run streamlit run --server.runOnSave false 
 ### 4. Why my modification to the environment variables in the `.env` file after the chat UI has started does not take effect?
 
 You need to restart the chat UI after modifying the `.env` file to make the changes take effect. You can stop the chat UI by pressing `Ctrl+C` in the terminal and then start it again.
-
-## Appendix
-
-### Image Search Application
-
-With vector storage and retrieval ability of OceanBase, we can also build an image search application. The application will embed the images into vectors and store them in the database. The user can upload an image and the application will search and return the most similar images in the database.
-
-Notes: You need to prepare some images in a folder yourself and update the `Image Base` configuration in opened UI. If you don't have available images locally, you can download a dataset online like [Animals-10](https://www.kaggle.com/datasets/alessiocorrado99/animals10/data) on Kaggle.
-
-```bash
-# Install the dependencies for the image search application
-poetry install
-
-# Start the image search UI. (You don't need to wait for the entire embedding process to finish)
-poetry run streamlit run --server.runOnSave false image_search_ui.py
-```

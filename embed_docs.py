@@ -76,7 +76,7 @@ vs = OceanBase(
     echo=args.echo,
 )
 
-vs.obvector.perform_raw_text_sql("ALTER SYSTEM ob_vector_memory_limit_percentage = 30")
+vs.obvector.perform_raw_text_sql("ALTER SYSTEM SET ob_vector_memory_limit_percentage = 30")
 vs.obvector.perform_raw_text_sql("SET GLOBAL ob_query_timeout=100000000")
 
 

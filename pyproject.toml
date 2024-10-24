@@ -15,9 +15,6 @@ pyobvector = "0.1.4"
 langchain-community = { git = "https://github.com/GITHUBear/ob-langchain.git", rev = "main" }
 flagembedding = "^1.2.11"
 peft = { version = "^0.13.1" }
-towhee = { version = "^1.1.3", extras = ["cv"] }
-opencv-python = { version = "^4.10.0.84", extras = ["cv"] }
-torchvision = { version = "^0.19.1", extras = ["cv"] }
 
 [build-system]
 requires = ["poetry-core"]

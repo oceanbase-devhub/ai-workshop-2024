@@ -345,19 +345,3 @@ ECHO=true TABLE_NAME=my_table poetry run streamlit run --server.runOnSave false 
 ### 4. 为什么我在启动 UI 服务后再编辑 .env 文件不再生效？
 
 如果你编辑了 .env 文件或者是代码文件，需要重启 UI 服务才能生效。你可以通过 `Ctrl + C` 终止服务，然后重新运行 `poetry run streamlit run --server.runOnSave false chat_ui.py` 来重启服务。
-
-## 附录
-
-### 图像搜索应用
-
-凭借 OceanBase 的向量存储和检索能力，我们还可以构建一个图像搜索应用。该应用将把图像嵌入到向量中并存储在数据库中。用户可以上传图像，应用程序将搜索并返回数据库中最相似的图像。
-
-注意：您需要自己准备一些图像并将 `Image Base` 配置更新到打开的 UI 中。如果您本地没有可用的图像，可以在线下载数据集，例如在 Kaggle 上的 [Animals-10](https://www.kaggle.com/datasets/alessiocorrado99/animals10/data) 数据集。
-
-```bash
-# 安装依赖
-poetry install
-
-# 启动图像搜索应用界面
-poetry run streamlit run --server.runOnSave false image_search_ui.py
-```

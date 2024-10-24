@@ -44,7 +44,7 @@ client = MilvusLikeClient(
     password=os.getenv("DB_PASSWORD"),
     db_name=os.getenv("DB_NAME"),
 )
-client.perform_raw_text_sql("ALTER SYSTEM ob_vector_memory_limit_percentage = 30")
+client.perform_raw_text_sql("ALTER SYSTEM SET ob_vector_memory_limit_percentage = 30")
 client.perform_raw_text_sql("SET GLOBAL ob_query_timeout=100000000")
 
 table_exist = client.check_table_exists(args.table_name)
