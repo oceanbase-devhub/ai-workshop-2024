@@ -37,7 +37,10 @@ class StreamResponse:
         return self.__whole_msg
 
 
-st.set_page_config(page_title="RAG 智能问答助手", page_icon="demo/ob-icon.png")
+st.set_page_config(
+    page_title="RAG 智能问答助手",
+    page_icon="demo/ob-icon.png",
+)
 st.title("💬 智能问答助手")
 st.caption("🚀 使用 OceanBase 向量检索特性和大语言模型能力构建的智能问答机器人")
 st.logo("demo/logo.png")
@@ -46,40 +49,40 @@ env_table_name = os.getenv("TABLE_NAME", "corpus")
 env_llm_base_url = os.getenv("LLM_BASE_URL", "https://open.bigmodel.cn/api/paas/v4/")
 
 with st.sidebar:
-    st.subheader("🔧Settings")
+    st.subheader("🔧 设置")
     st.text_input(
-        "TABLE_NAME",
+        "表名",
         value=env_table_name,
         disabled=True,
-        help="The table name of the data in the database. Which should be set by TABLE_NAME env variable.",
+        help="用于存放文档及其向量数据的表名，用环境变量 TABLE_NAME 进行设置",
     )
     if env_llm_base_url == "https://open.bigmodel.cn/api/paas/v4/":
         llm_model = st.selectbox(
-            "LLM Model",
+            "选用的大语言模型",
             ["glm-4-flash", "glm-4-air", "glm-4-plus", "glm-4-long"],
             index=0,
         )
     history_len = st.slider(
-        "Chat History Length",
+        "聊天历史长度",
         min_value=0,
         max_value=25,
         value=3,
-        help="The length of the chat history.",
+        help="聊天历史长度，用于上下文理解",
     )
     search_docs = st.checkbox(
-        "Search Docs",
+        "进行文档检索",
         True,
-        help="Search the documents to answer the questions.",
+        help="检索文档以获取更多信息，否则只使用大语言模型回答问题",
     )
     oceanbase_only = st.checkbox(
-        "Only OceanBase",
+        "仅限 OceanBase 相关问题",
         True,
-        help="Only answer OceanBase related questions",
+        help="勾选后机器人只会回答 OceanBase 有关的问题",
     )
     rerank = st.checkbox(
-        "Rerank Docs",
+        "进行文档重排序",
         False,
-        help="Rerank retrieved documents using the bge-m3 model to enhance generation, which is quite a slow process.",
+        help="使用 BGE-M3 对检索的文档进行重排序以提高检索结果的质量，这是一个很慢的过程，请仅在有需要时使用",
     )
 
 if "messages" not in st.session_state:
