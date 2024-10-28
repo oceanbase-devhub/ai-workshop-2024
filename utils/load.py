@@ -44,8 +44,27 @@ client = MilvusLikeClient(
     password=os.getenv("DB_PASSWORD"),
     db_name=os.getenv("DB_NAME"),
 )
-client.perform_raw_text_sql("ALTER SYSTEM SET ob_vector_memory_limit_percentage = 30")
-client.perform_raw_text_sql("SET GLOBAL ob_query_timeout=100000000")
+
+vals = []
+params = client.perform_raw_text_sql(
+    "SHOW PARAMETERS LIKE '%ob_vector_memory_limit_percentage%'"
+)
+for row in params:
+    val = int(row[6])
+    vals.append(val)
+if len(vals) == 0:
+    print("ob_vector_memory_limit_percentage not found in parameters.")
+    exit(1)
+if any(val == 0 for val in vals):
+    try:
+        client.perform_raw_text_sql(
+            "ALTER SYSTEM SET ob_vector_memory_limit_percentage = 30"
+        )
+    except Exception as e:
+        print("Failed to set ob_vector_memory_limit_percentage to 30.")
+        print("Error message:", e)
+        exit(1)
+client.perform_raw_text_sql("SET ob_query_timeout=100000000")
 
 table_exist = client.check_table_exists(args.table_name)
 

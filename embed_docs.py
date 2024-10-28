@@ -76,8 +76,26 @@ vs = OceanBase(
     echo=args.echo,
 )
 
-vs.obvector.perform_raw_text_sql("ALTER SYSTEM SET ob_vector_memory_limit_percentage = 30")
-vs.obvector.perform_raw_text_sql("SET GLOBAL ob_query_timeout=100000000")
+vals = []
+params = vs.obvector.perform_raw_text_sql(
+    "SHOW PARAMETERS LIKE '%ob_vector_memory_limit_percentage%'"
+)
+for row in params:
+    val = int(row[6])
+    vals.append(val)
+if len(vals) == 0:
+    print("ob_vector_memory_limit_percentage not found in parameters.")
+    exit(1)
+if any(val == 0 for val in vals):
+    try:
+        vs.obvector.perform_raw_text_sql(
+            "ALTER SYSTEM SET ob_vector_memory_limit_percentage = 30"
+        )
+    except Exception as e:
+        print("Failed to set ob_vector_memory_limit_percentage to 30.")
+        print("Error message:", e)
+        exit(1)
+vs.obvector.perform_raw_text_sql("SET ob_query_timeout=100000000")
 
 
 def insert_batch(docs: list[Document], comp: str = "observer"):
