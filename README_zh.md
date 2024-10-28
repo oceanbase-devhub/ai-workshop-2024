@@ -345,3 +345,7 @@ ECHO=true TABLE_NAME=my_table poetry run streamlit run --server.runOnSave false 
 ### 4. 为什么我在启动 UI 服务后再编辑 .env 文件不再生效？
 
 如果你编辑了 .env 文件或者是代码文件，需要重启 UI 服务才能生效。你可以通过 `Ctrl + C` 终止服务，然后重新运行 `poetry run streamlit run --server.runOnSave false chat_ui.py` 来重启服务。
+
+### 5. 如何更改聊天界面的语言？
+
+你可以通过更新 `.env` 文件中的 `UI_LANG` 环境变量来更改聊天界面的语言。默认值是 `zh`，表示中文。你可以将其更改为 `en` 来切换到英文。更新完成后需要重启服务才能生效。

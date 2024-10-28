@@ -343,3 +343,7 @@ ECHO=true TABLE_NAME=my_table poetry run streamlit run --server.runOnSave false 
 ### 4. Why my modification to the environment variables in the `.env` file after the chat UI has started does not take effect?
 
 You need to restart the chat UI after modifying the `.env` file to make the changes take effect. You can stop the chat UI by pressing `Ctrl+C` in the terminal and then start it again.
+
+### 5. How to change language of the chat UI?
+
+You can change the language of the chat UI by updating the `UI_LANG` environment variable in the `.env` file. The default value is `zh`, which means Chinese. You can change it to `en` to switch to English. You need to restart the chat UI after modifying the `.env` file to make the changes take effect.
