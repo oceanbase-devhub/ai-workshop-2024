@@ -5,6 +5,7 @@ dotenv.load_dotenv()
 
 from typing import Iterator, Union
 from rag.doc_rag import doc_rag_stream
+from i18n import t
 
 import streamlit as st
 from langchain_core.messages import BaseMessageChunk
@@ -37,58 +38,67 @@ class StreamResponse:
         return self.__whole_msg
 
 
+lang = os.getenv("UI_LANG", "zh")
+if lang not in ["zh", "en"]:
+    lang = "zh"
+
 st.set_page_config(
-    page_title="RAG 智能问答助手",
+    page_title=t("title", lang),
     page_icon="demo/ob-icon.png",
 )
-st.title("💬 智能问答助手")
-st.caption("🚀 使用 OceanBase 向量检索特性和大语言模型能力构建的智能问答机器人")
+st.title(t("title", lang))
+st.caption(t("caption", lang))
 st.logo("demo/logo.png")
 
 env_table_name = os.getenv("TABLE_NAME", "corpus")
 env_llm_base_url = os.getenv("LLM_BASE_URL", "https://open.bigmodel.cn/api/paas/v4/")
 
 with st.sidebar:
-    st.subheader("🔧 设置")
+    st.subheader(t("setting", lang))
     st.text_input(
-        "表名",
+        t("lang_input", lang),
+        value=lang,
+        disabled=True,
+        help=t("lang_help", lang),
+    )
+    st.text_input(
+        t("table_name_input", lang),
         value=env_table_name,
         disabled=True,
-        help="用于存放文档及其向量数据的表名，用环境变量 TABLE_NAME 进行设置",
+        help=t("table_name_help", lang),
     )
     if env_llm_base_url == "https://open.bigmodel.cn/api/paas/v4/":
         llm_model = st.selectbox(
-            "选用的大语言模型",
+            t("llm_model", lang),
             ["glm-4-flash", "glm-4-air", "glm-4-plus", "glm-4-long"],
             index=0,
+            help=t("llm_model_help", lang),
         )
     history_len = st.slider(
-        "聊天历史长度",
+        t("chat_history_len", lang),
         min_value=0,
         max_value=25,
         value=3,
-        help="聊天历史长度，用于上下文理解",
+        help=t("chat_history_len_help", lang),
     )
     search_docs = st.checkbox(
-        "进行文档检索",
+        t("search_docs", lang),
         True,
-        help="检索文档以获取更多信息，否则只使用大语言模型回答问题",
+        help=t("search_docs_help", lang),
     )
     oceanbase_only = st.checkbox(
-        "仅限 OceanBase 相关问题",
+        t("oceanbase_only", lang),
         True,
-        help="勾选后机器人只会回答 OceanBase 有关的问题",
+        help=t("oceanbase_only_help", lang),
     )
     rerank = st.checkbox(
-        "进行文档重排序",
+        t("rerank", lang),
         False,
-        help="使用 BGE-M3 对检索的文档进行重排序以提高检索结果的质量，这是一个很慢的过程，请仅在有需要时使用",
+        help=t("rerank_help", lang),
     )
 
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [
-        {"role": "assistant", "content": "您好，请问有什么可以帮助您的吗？"}
-    ]
+    st.session_state["messages"] = [{"role": "assistant", "content": t("hello", lang)}]
 
 avatar_m = {
     "assistant": "demo/ob-icon.png",
@@ -107,13 +117,13 @@ def remove_refs(history: list[dict]) -> list[dict]:
     return [
         {
             "role": msg["role"],
-            "content": msg["content"].split("根据向量相似性匹配检索")[0],
+            "content": msg["content"].split(t("ref_tips", lang))[0],
         }
         for msg in history
     ]
 
 
-if prompt := st.chat_input("请输入您想咨询的问题..."):
+if prompt := st.chat_input(t("chat_placeholder", lang=lang)):
     st.chat_message("user", avatar=avatar_m["user"]).write(prompt)
 
     history = st.session_state["messages"][-history_len:] if history_len > 0 else []
@@ -125,12 +135,13 @@ if prompt := st.chat_input("请输入您想咨询的问题..."):
         rerank=rerank,
         llm_model=llm_model,
         search_docs=search_docs,
+        lang=lang,
     )
 
-    with st.status("处理中...", expanded=True) as status:
+    with st.status(t("processing", lang), expanded=True) as status:
         for msg in it:
             if not isinstance(msg, str):
-                status.update(label="思考完毕！")
+                status.update(label=t("finish_thinking", lang))
                 break
             st.write(msg)
 

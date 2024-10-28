@@ -105,7 +105,11 @@ class AgentBase:
                 self.logger.debug(f"Agent-{self.__name} invoke_json return msg: {msg}")
                 self.__log_usage(msg)
                 parsed = parse_json_markdown(msg.content)
-                return parsed
+                if isinstance(parsed, dict):
+                    return parsed
+                else:
+                    # the response is not a mapping
+                    return {}
             except Exception as e:
                 self.logger.error(f"Agent-{self.__name} invoke_json error: {e}")
             finally:

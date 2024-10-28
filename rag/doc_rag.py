@@ -1,16 +1,18 @@
 import re
 import os
 import time
-import json
-import random
 
+from i18n import t
 from typing import Iterator, Optional, Union
 from langchain_core.messages import AIMessageChunk
 from rag.embeddings import get_embedding
 from rag.documents import Document, DocumentMeta, component_mapping as cm
 from agents.base import AgentBase
-from agents.rag_agent import prompt as rag_prompt
-from agents.universe_rag_agent import prompt as universal_rag_prompt
+from agents.rag_agent import prompt as rag_prompt, prompt_en as rag_prompt_en
+from agents.universe_rag_agent import (
+    prompt as universal_rag_prompt,
+    prompt_en as universal_rag_prompt_en,
+)
 from agents.intent_guard_agent import prompt as guard_prompt
 from agents.comp_analyzing_agent import prompt as caa_prompt
 from connection import connection_args
@@ -94,10 +96,12 @@ def replace_doc_url(doc_url: str) -> str:
 def get_elapsed_tips(
     start_time: float,
     end_time: Optional[float] = None,
+    /,
+    lang: str = "zh",
 ) -> str:
     end_time = end_time or time.time()
     elapsed_time = end_time - start_time
-    return f" (已耗时 {elapsed_time:.2f}s)"
+    return t("time_elapse", lang, elapsed_time)
 
 
 def extract_users_input(history: list[dict]) -> str:
@@ -115,6 +119,7 @@ def doc_rag_stream(
     llm_model: str = "glm-4-flash",
     rerank: bool = False,
     search_docs: bool = True,
+    lang: str = "zh",
     **kwargs,
 ) -> Iterator[Union[str, AIMessageChunk]]:
     """
@@ -123,32 +128,36 @@ def doc_rag_stream(
     start_time = time.time()
     if not search_docs:
         yield None
-        universal_rag_agent = AgentBase(
-            prompt=universal_rag_prompt, llm_model=llm_model
+        universal_prompt = (
+            universal_rag_prompt if lang == "zh" else universal_rag_prompt_en
         )
+        universal_rag_agent = AgentBase(prompt=universal_prompt, llm_model=llm_model)
         ans_itr = universal_rag_agent.stream(query, chat_history, document_snippets="")
         for chunk in ans_itr:
             yield chunk
         return
 
     if not universal_rag:
-        yield "正在分析问题意图..." + get_elapsed_tips(start_time, start_time)
+        yield t("analyzing_intent", lang) + get_elapsed_tips(
+            start_time, start_time, lang=lang
+        )
         iga = AgentBase(prompt=guard_prompt, llm_model="glm-4-flash")
         guard_res = iga.invoke_json(query)
         if hasattr(guard_res, "get"):
-            query_type = guard_res.get("type", "特性问题")
+            query_type = guard_res.get("type", "Features")
         else:
-            query_type = "特性问题"
-        rag_agent = AgentBase(prompt=rag_prompt, llm_model=llm_model)
-        if query_type == "闲聊":
-            yield "该问题与 OceanBase 无关" + get_elapsed_tips(start_time)
+            query_type = "Features"
+        prompt = rag_prompt if lang == "zh" else rag_prompt_en
+        rag_agent = AgentBase(prompt=prompt, llm_model=llm_model)
+        if query_type == "Chat":
+            yield t("no_oceanbase", lang) + get_elapsed_tips(start_time, lang=lang)
             yield None
             for chunk in rag_agent.stream(query, chat_history, document_snippets=""):
                 yield chunk
             return
         else:
-            yield "正在分析该问题涉及的 OceanBase 组件..." + get_elapsed_tips(
-                start_time
+            yield t("analyzing_components", lang) + get_elapsed_tips(
+                start_time, lang=lang
             )
             history_text = extract_users_input(chat_history)
             caa_agent = AgentBase(prompt=caa_prompt, llm_model="glm-4-flash")
@@ -161,7 +170,7 @@ def doc_rag_stream(
                 related_comps: list[str] = analyze_res.get("components", ["observer"])
             else:
                 related_comps = ["observer"]
-            
+
             visited = set()
             for comp in related_comps:
                 if comp not in supported_components:
@@ -175,9 +184,11 @@ def doc_rag_stream(
             if "observer" not in related_comps:
                 related_comps.append("observer")
 
-            yield f"该问题涉及的 OceanBase 组件为 {', '.join(related_comps)}" + get_elapsed_tips(
-                start_time
-            )
+            yield t(
+                "list_related_components",
+                lang,
+                ", ".join(related_comps),
+            ) + get_elapsed_tips(start_time, lang=lang)
 
             docs = []
 
@@ -188,14 +199,12 @@ def doc_rag_stream(
             limit = 10 if rerankable else max(3, 13 - 3 * len(related_comps))
             total_docs = []
 
-            yield f"正在使用深度学习模型将提问的文本嵌入为向量..." + get_elapsed_tips(
-                start_time
-            )
+            yield t("embedding_query", lang) + get_elapsed_tips(start_time, lang=lang)
             query_embedded = embeddings.embed_query(query)
 
             for comp in related_comps:
-                yield f"正在使用 OceanBase 搜索与 {comp} 有关的文档..." + get_elapsed_tips(
-                    start_time
+                yield t("searching_docs_for", lang, comp) + get_elapsed_tips(
+                    start_time, lang=lang
                 )
                 total_docs.extend(
                     doc_search_by_vector(
@@ -206,36 +215,36 @@ def doc_rag_stream(
                 )
 
             if rerankable and len(related_comps) > 1:
-                yield "正在重新排序文档..." + get_elapsed_tips(start_time)
+                yield t("reranking_docs", lang) + get_elapsed_tips(
+                    start_time,
+                    lang=lang,
+                )
                 total_docs = embeddings.rerank(query, total_docs)
                 docs = total_docs[:10]
             else:
                 docs = total_docs
 
     else:
-        yield f"正在使用深度学习模型将提问的文本嵌入为向量..." + get_elapsed_tips(
-            start_time
-        )
+        yield t("embedding_query", lang) + get_elapsed_tips(start_time, lang=lang)
         query_embedded = embeddings.embed_query(query)
 
-        yield f"正在使用 OceanBase 搜索与提问相关的文档..." + get_elapsed_tips(
-            start_time
-        )
+        yield t("searching_docs", lang) + get_elapsed_tips(start_time, lang=lang)
         docs = doc_search_by_vector(
             query_embedded,
             limit=10,
         )
 
-    yield "大语言模型正在思考..." + get_elapsed_tips(start_time)
+    yield t("llm_thinking", lang) + get_elapsed_tips(start_time, lang=lang)
 
     docs_content = "\n=====\n".join(
         [f"文档片段:\n\n" + chunk.page_content for i, chunk in enumerate(docs)]
     )
 
     if universal_rag:
-        universal_rag_agent = AgentBase(
-            prompt=universal_rag_prompt, llm_model=llm_model
+        universal_prompt = (
+            universal_rag_prompt if lang == "zh" else universal_rag_prompt_en
         )
+        universal_rag_agent = AgentBase(prompt=universal_prompt, llm_model=llm_model)
         ans_itr = universal_rag_agent.stream(
             query, chat_history, document_snippets=docs_content
         )
@@ -285,7 +294,7 @@ def doc_rag_stream(
     if len(buffer) > 0:
         yield AIMessageChunk(content=buffer)
 
-    ref_tip = "根据向量相似性匹配检索到的相关文档如下:"
+    ref_tip = t("ref_tips", lang)
 
     if len(pruned_references) > 0:
         yield AIMessageChunk(content="\n\n" + ref_tip)

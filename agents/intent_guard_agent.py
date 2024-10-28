@@ -18,9 +18,9 @@ prompt = """
   miniob: MiniOB 是 OceanBase 的单机教学版本，用于学习和测试，OceanBase 每年都以此为基础举办数据库比赛，赛题一般是给 miniob 增加特性。
 
 请根据用户的提问，判断用户的问题类型，并将问题分类为以下几类：
-1. 闲聊
-2. 特性问题
-3. 诊断问题
+1. Chat
+2. Features
+3. Diagnosis
 
 判断完问题之后，将与 OceanBase 相关的问题进行改写，使其更适合用来进行文档检索。
 
@@ -42,7 +42,7 @@ prompt = """
 案例1:
 用户问题: “OB的分布式架构是怎样的？”
 {{
-  "type": "特性问题",
+  "type": "Features",
   "rewrite": "OceanBase的分布式架构是怎样的？",
   "components": ["oceanbase"]
 }}
@@ -50,7 +50,7 @@ prompt = """
 案例2:
 用户问题: “你好”
 {{
-  "type": "闲聊",
+  "type": "Chat",
   "rewrite": "无",
   "components": []
 }}
@@ -58,7 +58,7 @@ prompt = """
 案例3:
 用户问题: “OceanBase对Orcale的兼容性怎么样？”
 {{
-  "type": "特性问题",
+  "type": "Features",
   "rewrite": "OceanBase对Oracle的兼容性怎么样？",
   "components": ["observer"]
 }}
@@ -66,7 +66,7 @@ prompt = """
 案例4:
 用户问题: “OCP重启不成功，一直报错 4013”
 {{
-  "type": "诊断问题",
+  "type": "Diagnosis",
   "rewrite": "OCP 重启失败，错误代码为 4013，该如何解决？",
   "components": ["ocp"]
 }}
