@@ -31,7 +31,7 @@ tr = {
         "ref_tips": "Retrieved documents are listed below,",
         "chat_placeholder": "Input your question here...",
         "lang_input": "Language",
-        "lang_help": "The language used for LLM prompts and the UI, set using the environment variable UI_LANG, currently only supports 'en' and 'zh'",
+        "lang_help": "The language used for LLM prompts and the UI, set using the environment variable UI_LANG, currently supports 'en' and 'zh'",
     },
     "zh": {
         "hello": "您好，请问有什么可以帮助您的吗？",
@@ -65,7 +65,7 @@ tr = {
         "ref_tips": "根据向量相似性匹配检索到的相关文档如下:",
         "chat_placeholder": "请输入您想咨询的问题...",
         "lang_input": "语言",
-        "lang_help": "大模型提示词和用户界面的语言，用 UI_LANG 进行设置，支持 en 和 zh 两种",
+        "lang_help": "大模型提示词和用户界面的语言，用环境变量 UI_LANG 进行设置，支持 en 和 zh 两种语言",
     },
 }
 
