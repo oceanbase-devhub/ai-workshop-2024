@@ -155,6 +155,24 @@ yarl = ">=1.12.0,<2.0"
 speedups = ["Brotli", "aiodns (>=3.2.0)", "brotlicffi"]
 
 [[package]]
+name = "aiomysql"
+version = "0.2.0"
+description = "MySQL driver for asyncio."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "aiomysql-0.2.0-py3-none-any.whl", hash = "sha256:b7c26da0daf23a5ec5e0b133c03d20657276e4eae9b73e040b72787f6f6ade0a"},
+    {file = "aiomysql-0.2.0.tar.gz", hash = "sha256:558b9c26d580d08b8c5fd1be23c5231ce3aeff2dadad989540fee740253deb67"},
+]
+
+[package.dependencies]
+PyMySQL = ">=1.0"
+
+[package.extras]
+rsa = ["PyMySQL[rsa] (>=1.0)"]
+sa = ["sqlalchemy (>=1.3,<1.4)"]
+
+[[package]]
 name = "aiosignal"
 version = "1.3.1"
 description = "aiosignal: a list of registered asynchronous callbacks"
@@ -2429,16 +2447,17 @@ rsa = ["cryptography"]
 
 [[package]]
 name = "pyobvector"
-version = "0.1.4"
-description = ""
+version = "0.1.7"
+description = "A python SDK for OceanBase Vector Store, based on SQLAlchemy, compatible with Milvus API."
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "pyobvector-0.1.4-py3-none-any.whl", hash = "sha256:a6318654a6d8b7421c658ddd4974a4f5e2ce67cf46bd04997f7bdb93f13baaca"},
-    {file = "pyobvector-0.1.4.tar.gz", hash = "sha256:8a051ddf8b77afd268d1ab9efa9c91d1527e9420e662ce6589f8436cdbceaba4"},
+    {file = "pyobvector-0.1.7-py3-none-any.whl", hash = "sha256:4fdee5a6235d7693cd29f87ecde23100b1fc8ec3733fb6ea9837f33c953934fb"},
+    {file = "pyobvector-0.1.7.tar.gz", hash = "sha256:759df81ff7500c83683a736cacd3a4affdc910da18d37166aa725783a4868c89"},
 ]
 
 [package.dependencies]
+aiomysql = ">=0.2.0,<0.3.0"
 numpy = ">=1.26.0,<2.0.0"
 pymysql = ">=1.1.1,<2.0.0"
 sqlalchemy = ">=2.0.32,<3.0.0"
@@ -3991,4 +4010,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.9.7 || >3.9.7,<4.0"
-content-hash = "d8c1bec3fc4d70492a7b370c2a23acf859ef8f620aebf5de2b520f93f9c33fab"
+content-hash = "0d2bc671c792c122e5a1584161ec73aa6d48ba1114c4fae57f1a0907cfb4a2fe"
