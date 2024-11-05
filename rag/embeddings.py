@@ -1,5 +1,6 @@
 import os
 import enum
+import requests
 from typing import List, Union
 
 from FlagEmbedding import BGEM3FlagModel
@@ -10,11 +11,17 @@ from langchain_core.documents import Document
 __embedding = None
 
 
-def get_embedding():
+def get_embedding(
+    remote_url: str = None,
+    remote_token: str = None,
+):
     global __embedding
     if __embedding is not None:
         return __embedding
-    __embedding = BGEEmbedding()
+    if remote_url is not None and remote_token is not None:
+        __embedding = RemoteBGE(remote_url, remote_token)
+    else:
+        __embedding = BGEEmbedding()
     return __embedding
 
 
@@ -126,3 +133,29 @@ class BGEEmbedding(Embeddings):
         docs_with_scores = list(zip(scores, documents))
         combined_sorted = sorted(docs_with_scores, key=lambda x: x[0], reverse=True)
         return [doc for _, doc in combined_sorted]
+
+
+class RemoteBGE(Embeddings):
+    def __init__(self, url: str, token: str):
+        self.url = url
+        self._token = token
+
+    def embed_documents(
+        self,
+        texts: List[str],
+    ) -> Union[List[List[float]], List[dict[int, float]]]:
+        res = requests.post(
+            self.url,
+            json={"content": texts},
+            headers={
+                "X-Token": self._token,
+            },
+        )
+        data = res.json()
+        if len(texts) == 1:
+            return [data["embedding"]]
+        else:
+            return data["embedding"]
+
+    def embed_query(self, text: str, **kwargs) -> Union[List[float], dict[int, float]]:
+        return self.embed_documents([text])[0]

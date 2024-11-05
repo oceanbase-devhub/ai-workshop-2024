@@ -1,3 +1,4 @@
+import os
 import uuid
 import argparse
 import dotenv
@@ -59,7 +60,10 @@ parser.add_argument(
 args = parser.parse_args()
 print("args", args)
 
-embeddings = get_embedding()
+embeddings = get_embedding(
+    remote_url=os.getenv("REMOTE_BGE_URL", None),
+    remote_token=os.getenv("REMOTE_BGE_TOKEN", None),
+)
 
 vs = OceanBase(
     embedding_function=embeddings,

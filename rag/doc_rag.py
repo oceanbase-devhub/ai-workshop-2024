@@ -20,7 +20,10 @@ from sqlalchemy import Column, Integer
 
 from langchain_community.vectorstores import OceanBase
 
-embeddings = get_embedding()
+embeddings = get_embedding(
+    remote_url=os.getenv("REMOTE_BGE_URL") or None,
+    remote_token=os.getenv("REMOTE_BGE_TOKEN") or None,
+)
 
 vs = OceanBase(
     embedding_function=embeddings,
