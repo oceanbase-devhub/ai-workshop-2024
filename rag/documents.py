@@ -33,19 +33,51 @@ component_mapping = {
 }
 
 
+headers_to_split_on = [
+    ("#", "Header1"),
+    ("##", "Header2"),
+    ("###", "Header3"),
+    ("####", "Header4"),
+    ("#####", "Header5"),
+    ("######", "Header6"),
+]
+
+splitter = MarkdownHeaderTextSplitter(
+    headers_to_split_on=headers_to_split_on,
+)
+
+
+def parse_md(
+    file_path: str,
+    max_chunk_size: int = 4096,
+) -> Iterator[Document]:
+    with open(file_path, "r", encoding="utf-8") as f:
+        file_content = f.read()
+        chunks = splitter.split_text(file_content)
+        for chunk in chunks:
+            subtitles = list(chunk.metadata.values())
+            if len(subtitles) == 0:
+                subtitles.append(file_path.split("/")[-1])
+            meta = DocumentMeta(
+                doc_url=file_path,
+                chunk_title=subtitles[-1],
+                enhanced_title=" -> ".join(subtitles),
+                doc_name=chunk.metadata.get("Header1", subtitles[-1]),
+            )
+            if len(chunk.page_content) <= max_chunk_size:
+                chunk.metadata = meta.model_dump()
+                yield chunk
+            else:
+                for i in range(0, len(chunk.page_content), max_chunk_size):
+                    sub_chunk = Document(chunk.page_content[i : i + max_chunk_size])
+                    sub_chunk.metadata = meta.model_dump()
+                    yield sub_chunk
+
+
 class MarkdownDocumentsLoader:
     """
     Markdown Documents Loader.
     """
-
-    __headers_to_split_on = [
-        ("#", "Header1"),
-        ("##", "Header2"),
-        ("###", "Header3"),
-        ("####", "Header4"),
-        ("#####", "Header5"),
-        ("######", "Header6"),
-    ]
 
     def __init__(
         self,
@@ -53,9 +85,6 @@ class MarkdownDocumentsLoader:
         skip_patterns: list[str] = [],
     ):
         self.doc_base = doc_base
-        self.splitter = MarkdownHeaderTextSplitter(
-            headers_to_split_on=self.__headers_to_split_on,
-        )
         self.skip_patterns = skip_patterns
 
     def load(
@@ -83,29 +112,8 @@ class MarkdownDocumentsLoader:
 
         count = 0
         for file_path in files_to_process:
-            with open(file_path, "r", encoding="utf-8") as f:
-                file_content = f.read()
-                chunks = self.splitter.split_text(file_content)
-                for chunk in chunks:
-                    subtitles = list(chunk.metadata.values())
-                    if len(subtitles) == 0:
-                        subtitles.append(file_path.split("/")[-1])
-                    meta = DocumentMeta(
-                        doc_url=file_path,
-                        chunk_title=subtitles[-1],
-                        enhanced_title=" -> ".join(subtitles),
-                        doc_name=chunk.metadata.get("Header1", subtitles[-1]),
-                    )
-                    if len(chunk.page_content) <= max_chunk_size:
-                        chunk.metadata = meta.model_dump()
-                        yield chunk
-                    else:
-                        for i in range(0, len(chunk.page_content), max_chunk_size):
-                            sub_chunk = Document(
-                                chunk.page_content[i : i + max_chunk_size]
-                            )
-                            sub_chunk.metadata = meta.model_dump()
-                            yield sub_chunk
+            for chunk in parse_md(file_path, max_chunk_size=max_chunk_size):
+                yield chunk
                 count += 1
                 if limit > 0 and count >= limit:
                     break

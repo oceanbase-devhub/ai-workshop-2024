@@ -20,11 +20,15 @@ def get_model(**kwargs) -> ChatOpenAI:
         model=kwargs.pop("llm_model", os.getenv("LLM_MODEL", "qwen-plus")),
         temperature=0.2,
         max_tokens=2000,
-        api_key=os.environ["API_KEY"],
-        **kwargs,
-        base_url=os.getenv(
-            "LLM_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        api_key=kwargs.pop("llm_api_key", os.getenv("API_KEY")),
+        base_url=kwargs.pop(
+            "llm_base_url",
+            os.getenv(
+                "LLM_BASE_URL",
+                "https://dashscope.aliyuncs.com/compatible-mode/v1",
+            ),
         ),
+        **kwargs,
     )
     return model
 

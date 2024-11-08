@@ -146,16 +146,13 @@ class RemoteBGE(Embeddings):
     ) -> Union[List[List[float]], List[dict[int, float]]]:
         res = requests.post(
             self.url,
-            json={"content": texts},
+            json={"model": "bge-m3", "input": texts},
             headers={
                 "X-Token": self._token,
             },
         )
         data = res.json()
-        if len(texts) == 1:
-            return [data["embedding"]]
-        else:
-            return data["embedding"]
+        return data["embeddings"]
 
     def embed_query(self, text: str, **kwargs) -> Union[List[float], dict[int, float]]:
         return self.embed_documents([text])[0]
