@@ -164,7 +164,7 @@ with st.sidebar:
         **Note:** The chatbot will only work with the selected table.
         """
     )
-    if st.button("Reset"):
+    if st.button("Reset", use_container_width=True):
         init_state()
         if os.path.exists("./uploaded/state.json"):
             os.remove("./uploaded/state.json")
@@ -172,6 +172,14 @@ with st.sidebar:
             for root, _, f in os.walk("./uploaded/docs"):
                 for file in f:
                     os.remove(os.path.join(root, file))
+    if st.session_state.get("step", 0) > 0:
+        if st.button(
+            "Back",
+            key="sidebar_back",
+            icon="👈🏻",
+            use_container_width=True,
+        ):
+            step_back()
 
 progress_text = steps[st.session_state.step].name
 my_bar = st.progress(
@@ -186,23 +194,28 @@ if st.session_state.step == 0:
     host = st.text_input(
         label="Host",
         value=connection.get("host", "127.0.0.1"),
+        placeholder="Database host, e.g. 127.0.0.1",
     )
     port = st.text_input(
         label="Port",
         value=connection.get("port", "2881"),
+        placeholder="Database port, e.g. 2881",
     )
     user = st.text_input(
         label="User",
         value=connection.get("user", "root@test"),
+        placeholder="Database user, e.g. root@test",
     )
     db_password = st.text_input(
         label="Password",
         type="password",
         value=connection.get("password", ""),
+        placeholder="Database password, empty if no password.",
     )
     db_name = st.text_input(
         label="Database",
         value=connection.get("database", "test"),
+        placeholder="Database name, e.g. test",
     )
     c = {
         "host": host,
@@ -238,8 +251,16 @@ elif st.session_state.step == 1:
         tables = []
         for row in conn.execute(text("SHOW TABLES")):
             tables.append(row[0])
-        table = st.text_input("Create Table", value=st.session_state.table)
-        if st.checkbox("Select Table"):
+        selecting = st.session_state.get("selecting_table", False)
+        table = st.text_input(
+            "Create Table",
+            value=st.session_state.table,
+            placeholder="Input table name to create the table if not exists.",
+            disabled=selecting,
+        )
+        selecting = st.toggle("Select Table")
+        if selecting:
+            st.session_state.selecting
             table = st.selectbox("Table", tables)
             count = conn.execute(text(f"SELECT COUNT(*) FROM {table}")).scalar()
             st.caption(f"Number of rows in table {table}: {count}")
@@ -337,7 +358,16 @@ elif st.session_state.step == 2:
 
 elif st.session_state.step == 3:
     print(st.session_state)
-    with st.container(border=1):    
+    with st.container(border=1):
+        if st.button(
+            "Back",
+            icon="👈🏻",
+            use_container_width=True,
+        ):
+            step_back()
+        st.caption(
+            "If you want to use other LLM vendors compatible with OpenAI API, please modify the following fields. The default settings are for [ZhipuAI](https://bigmodel.cn)."
+        )
         llm_model = st.text_input("Model", value="glm-4-flash")
         llm_base_url = st.text_input(
             "Base URL",
@@ -360,7 +390,7 @@ elif st.session_state.step == 3:
         connection_args=st.session_state.connection,
         metadata_field="metadata",
     )
-    if prompt := st.chat_input("Type something..."):
+    if prompt := st.chat_input("Ask something..."):
         st.chat_message("user", avatar="👨🏻‍💻").write(prompt)
 
         history = st.session_state["messages"][-4:]
