@@ -878,6 +878,17 @@ socks = ["socksio (==1.*)"]
 zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
+name = "httpx-sse"
+version = "0.4.0"
+description = "Consume Server-Sent Event (SSE) messages with HTTPX."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "httpx-sse-0.4.0.tar.gz", hash = "sha256:1e81a3a3070ce322add1d3529ed42eb5f70817f45ed6ec915ab753f961139721"},
+    {file = "httpx_sse-0.4.0-py3-none-any.whl", hash = "sha256:f329af6eae57eaa2bdfd962b42524764af68075ea87370a2de920af5341e318f"},
+]
+
+[[package]]
 name = "huggingface-hub"
 version = "0.25.2"
 description = "Client library to download and publish models, datasets and other repos on the huggingface.co hub"
@@ -1097,19 +1108,19 @@ referencing = ">=0.31.0"
 
 [[package]]
 name = "langchain"
-version = "0.3.3"
+version = "0.3.7"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "langchain-0.3.3-py3-none-any.whl", hash = "sha256:05ac98c674853c2386d043172820e37ceac9b913aaaf1e51217f0fc424112c72"},
-    {file = "langchain-0.3.3.tar.gz", hash = "sha256:6435882996a029a60c61c356bbe51bab4a8f43a54210f5f03e3c4474d19d1842"},
+    {file = "langchain-0.3.7-py3-none-any.whl", hash = "sha256:cf4af1d5751dacdc278df3de1ff3cbbd8ca7eb55d39deadccdd7fb3d3ee02ac0"},
+    {file = "langchain-0.3.7.tar.gz", hash = "sha256:2e4f83bf794ba38562f7ba0ede8171d7e28a583c0cec6f8595cfe72147d336b2"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.8.3,<4.0.0"
 async-timeout = {version = ">=4.0.0,<5.0.0", markers = "python_version < \"3.11\""}
-langchain-core = ">=0.3.10,<0.4.0"
+langchain-core = ">=0.3.15,<0.4.0"
 langchain-text-splitters = ">=0.3.0,<0.4.0"
 langsmith = ">=0.1.17,<0.2.0"
 numpy = [
@@ -1120,11 +1131,11 @@ pydantic = ">=2.7.4,<3.0.0"
 PyYAML = ">=5.3"
 requests = ">=2,<3"
 SQLAlchemy = ">=1.4,<3"
-tenacity = ">=8.1.0,<8.4.0 || >8.4.0,<9.0.0"
+tenacity = ">=8.1.0,<8.4.0 || >8.4.0,<10"
 
 [[package]]
 name = "langchain-community"
-version = "0.3.0"
+version = "0.3.5"
 description = "Community contributed LangChain integrations."
 optional = false
 python-versions = ">=3.9,<4.0"
@@ -1134,9 +1145,10 @@ develop = false
 [package.dependencies]
 aiohttp = "^3.8.3"
 dataclasses-json = ">= 0.5.7, < 0.7"
-langchain = "^0.3.0"
-langchain-core = "^0.3.0"
-langsmith = "^0.1.112"
+httpx-sse = "^0.4.0"
+langchain = "^0.3.6"
+langchain-core = "^0.3.15"
+langsmith = "^0.1.125"
 numpy = [
     {version = ">=1,<2", markers = "python_version < \"3.12\""},
     {version = ">=1.26.0,<2.0.0", markers = "python_version >= \"3.12\""},
@@ -1144,24 +1156,24 @@ numpy = [
 pydantic-settings = "^2.4.0"
 PyYAML = ">=5.3"
 requests = "^2"
-SQLAlchemy = ">=1.4,<3"
-tenacity = "^8.1.0,!=8.4.0"
+SQLAlchemy = ">=1.4,<2.0.36"
+tenacity = ">=8.1.0,!=8.4.0,<10"
 
 [package.source]
 type = "git"
-url = "https://github.com/GITHUBear/ob-langchain.git"
+url = "https://github.com/oceanbase-devhub/langchain-community.git"
 reference = "main"
-resolved_reference = "cda04ef9f0a620f103536c3035aba326b6256d0b"
+resolved_reference = "b39e352003d0dbe167aedc5d7cd2369674c47934"
 
 [[package]]
 name = "langchain-core"
-version = "0.3.10"
+version = "0.3.15"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "langchain_core-0.3.10-py3-none-any.whl", hash = "sha256:146be6bf2d3dc0d6f4feb46ef082182cf57b056e8163d45278529cd7b7343d2f"},
-    {file = "langchain_core-0.3.10.tar.gz", hash = "sha256:63b9a3d03b52dba29cc248b752c574cdcb5fb04bd0fc5c76097fcbb7aaba5221"},
+    {file = "langchain_core-0.3.15-py3-none-any.whl", hash = "sha256:3d4ca6dbb8ed396a6ee061063832a2451b0ce8c345570f7b086ffa7288e4fa29"},
+    {file = "langchain_core-0.3.15.tar.gz", hash = "sha256:b1a29787a4ffb7ec2103b4e97d435287201da7809b369740dd1e32f176325aba"},
 ]
 
 [package.dependencies]
@@ -1173,7 +1185,7 @@ pydantic = [
     {version = ">=2.7.4,<3.0.0", markers = "python_full_version >= \"3.12.4\""},
 ]
 PyYAML = ">=5.3"
-tenacity = ">=8.1.0,<8.4.0 || >8.4.0,<9.0.0"
+tenacity = ">=8.1.0,<8.4.0 || >8.4.0,<10.0.0"
 typing-extensions = ">=4.7"
 
 [[package]]
@@ -4010,4 +4022,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.9.7 || >3.9.7,<4.0"
-content-hash = "0d2bc671c792c122e5a1584161ec73aa6d48ba1114c4fae57f1a0907cfb4a2fe"
+content-hash = "8c02e91bc9831f58c1fb62ee603475687cec897b5804e19ecc4e42f9ebfd0570"

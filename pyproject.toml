@@ -12,7 +12,7 @@ langchain = "^0.3.0"
 langchain-openai = "^0.2.0"
 streamlit = "^1.38.0"
 pyobvector = "^0.1.6"
-langchain-community = { git = "https://github.com/GITHUBear/ob-langchain.git", rev = "main" }
+langchain-community = { git = "https://github.com/oceanbase-devhub/langchain-community.git", rev = "main" }
 flagembedding = "^1.2.11"
 peft = { version = "^0.13.1" }
 

@@ -61,8 +61,8 @@ args = parser.parse_args()
 print("args", args)
 
 embeddings = get_embedding(
-    remote_url=os.getenv("REMOTE_BGE_URL", None),
-    remote_token=os.getenv("REMOTE_BGE_TOKEN", None),
+    remote_url=os.getenv("REMOTE_BGE_URL") or None,
+    remote_token=os.getenv("REMOTE_BGE_TOKEN") or None,
 )
 
 vs = OceanBase(
