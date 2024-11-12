@@ -123,6 +123,7 @@ def doc_rag_stream(
     rerank: bool = False,
     search_docs: bool = True,
     lang: str = "zh",
+    show_refs: bool = True,
     **kwargs,
 ) -> Iterator[Union[str, AIMessageChunk]]:
     """
@@ -296,6 +297,9 @@ def doc_rag_stream(
 
     if len(buffer) > 0:
         yield AIMessageChunk(content=buffer)
+
+    if not show_refs:
+        return
 
     ref_tip = t("ref_tips", lang)
 

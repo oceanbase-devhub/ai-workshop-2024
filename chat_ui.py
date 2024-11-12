@@ -86,6 +86,11 @@ with st.sidebar:
         True,
         help=t("search_docs_help", lang),
     )
+    show_refs = st.checkbox(
+        t("show_refs", lang),
+        True,
+        help=t("show_refs_help", lang),
+    )
     oceanbase_only = st.checkbox(
         t("oceanbase_only", lang),
         True,
@@ -136,6 +141,7 @@ if prompt := st.chat_input(t("chat_placeholder", lang=lang)):
         llm_model=llm_model,
         search_docs=search_docs,
         lang=lang,
+        show_refs=show_refs,
     )
 
     with st.status(t("processing", lang), expanded=True) as status:

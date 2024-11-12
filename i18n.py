@@ -32,6 +32,7 @@ tr = {
         "chat_placeholder": "Input your question here...",
         "lang_input": "Language",
         "lang_help": "The language used for LLM prompts and the UI, set using the environment variable UI_LANG, currently supports 'en' and 'zh'",
+        "show_refs": "Show References",
     },
     "zh": {
         "hello": "您好，请问有什么可以帮助您的吗？",
@@ -66,6 +67,7 @@ tr = {
         "chat_placeholder": "请输入您想咨询的问题...",
         "lang_input": "语言",
         "lang_help": "大模型提示词和用户界面的语言，用环境变量 UI_LANG 进行设置，支持 en 和 zh 两种语言",
+        "show_refs": "显示参考文档",
     },
 }
 
