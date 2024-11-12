@@ -251,21 +251,21 @@ elif st.session_state.step == 1:
         tables = []
         for row in conn.execute(text("SHOW TABLES")):
             tables.append(row[0])
-        selecting = st.session_state.get("selecting_table", False)
+
+        selecting = st.toggle("Select Table")
+        if selecting:
+            table = st.selectbox("Table", tables)
+            count = conn.execute(text(f"SELECT COUNT(*) FROM {table}")).scalar()
+            st.caption(f"Number of rows in table {table}: {count}")
+            st.caption(f"Structure of table {table}:")
+            st.table(conn.execute(text(f"DESC {table}")).fetchall())
+            
         table = st.text_input(
             "Create Table",
             value=st.session_state.table,
             placeholder="Input table name to create the table if not exists.",
             disabled=selecting,
         )
-        selecting = st.toggle("Select Table")
-        if selecting:
-            st.session_state.selecting
-            table = st.selectbox("Table", tables)
-            count = conn.execute(text(f"SELECT COUNT(*) FROM {table}")).scalar()
-            st.caption(f"Number of rows in table {table}: {count}")
-            st.caption(f"Structure of table {table}:")
-            st.table(conn.execute(text(f"DESC {table}")).fetchall())
     col1, col2 = st.columns(2)
     if col1.button(
         "Back",
