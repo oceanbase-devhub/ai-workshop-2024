@@ -21,9 +21,13 @@ from sqlalchemy import Column, Integer
 from langchain_community.vectorstores import OceanBase
 
 embeddings = get_embedding(
-    remote_url=os.getenv("REMOTE_BGE_URL") or None,
-    remote_token=os.getenv("REMOTE_BGE_TOKEN") or None,
+    ollama_url=os.getenv("OLLAMA_URL") or None,
+    ollama_token=os.getenv("OLLAMA_TOKEN") or None,
+    base_url=os.getenv("OPENAI_BASE_URL") or None,
+    api_key=os.getenv("OPENAI_API_KEY") or None,
+    model=os.getenv("OPENAI_EMBEDDING_MODEL") or None,
 )
+
 
 vs = OceanBase(
     embedding_function=embeddings,

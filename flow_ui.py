@@ -18,7 +18,7 @@ import streamlit as st
 from agents.base import AgentBase
 from agents.universe_rag_agent import prompt as universal_rag_prompt
 from rag.documents import parse_md
-from rag.embeddings import RemoteBGE
+from rag.embeddings import OllamaEmbedding
 
 
 def init_state():
@@ -103,7 +103,7 @@ def get_engine(**c):
     )
 
 
-embeddings = RemoteBGE(
+embeddings = OllamaEmbedding(
     url="http://30.249.224.105:8080/api/embed",
     token="test",
 )

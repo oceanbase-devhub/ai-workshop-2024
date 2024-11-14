@@ -1,25 +1,40 @@
 import os
 import enum
 import requests
-from typing import List, Union
+from typing import List, Union, Optional
 
 from FlagEmbedding import BGEM3FlagModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
+from langchain_openai import OpenAIEmbeddings
 
 
 __embedding = None
 
 
 def get_embedding(
-    remote_url: str = None,
-    remote_token: str = None,
+    ollama_url: Optional[str] = None,
+    ollama_token: Optional[str] = None,
+    ollama_model: Optional[str] = None,
+    base_url: Optional[str] = None,
+    api_key: Optional[str] = None,
+    model: Optional[str] = None,
 ):
     global __embedding
     if __embedding is not None:
         return __embedding
-    if remote_url is not None and remote_token is not None:
-        __embedding = RemoteBGE(remote_url, remote_token)
+    if all([ollama_url, ollama_token]):
+        __embedding = OllamaEmbedding(
+            ollama_url,
+            ollama_token,
+            ollama_model,
+        )
+    elif all([base_url, api_key, model]):
+        __embedding = OpenAIEmbeddings(
+            base_url=base_url,
+            api_key=api_key,
+            model=model,
+        )
     else:
         __embedding = BGEEmbedding()
     return __embedding
@@ -135,9 +150,10 @@ class BGEEmbedding(Embeddings):
         return [doc for _, doc in combined_sorted]
 
 
-class RemoteBGE(Embeddings):
-    def __init__(self, url: str, token: str):
+class OllamaEmbedding(Embeddings):
+    def __init__(self, url: str, token: str, model: str = "bge-m3"):
         self.url = url
+        self.model = model
         self._token = token
 
     def embed_documents(
@@ -146,9 +162,9 @@ class RemoteBGE(Embeddings):
     ) -> Union[List[List[float]], List[dict[int, float]]]:
         res = requests.post(
             self.url,
-            json={"model": "bge-m3", "input": texts},
+            json={"model": self.model, "input": texts},
             headers={
-                "X-Token": self._token,
+                "X-Token": self._token or "token",
             },
         )
         data = res.json()
