@@ -2,38 +2,109 @@
 
 [英文版](./README.md)
 
-## 介绍
+## 项目介绍
 
-在这个动手实战营中，我们会构建一个 RAG 聊天机器人，用来回答与 OceanBase 文档相关的问题。它将采用开源的 OceanBase 文档仓库作为多模数据源，把文档转换为向量和结构化数据存储在 OceanBase 中。用户提问时，该机器人将用户的问题作为输入在数据库中进行文档检索，结合文档检索的结果，借助智谱 AI 提供的大语言模型能力来回答用户的问题。
+在这个动手实战营中，我们会构建一个 RAG 聊天机器人，用来回答与 OceanBase 文档相关的问题。它将采用开源的 OceanBase 文档仓库作为多模数据源，把文档转换为向量和结构化数据存储在 OceanBase 中。用户提问时，该机器人将用户的问题同样转换为向量之后在数据库中进行向量检索，结合向量检索得到的文档内容，借助通义千问提供的大语言模型能力来为用户提供更加准确的回答。
+
+### 项目组成
 
 该机器人将由以下几个组件组成：
 
-1. 将文档转换为向量的文本嵌入模型，BGE-M3
-2. 提供存储和查询文档向量和其他结构化数据的数据库，OceanBase
-3. 若干分析用户问题、基于检索到的文档和用户问题生成回答的 LLM 智能体，利用智谱 AI 的大模型能力
-4. 与用户交互的聊天界面，采用 Streamlit 搭建
+1. 将文档转换为向量的文本嵌入服务，在这里我们使用通义千问的嵌入 API
+2. 提供存储和查询文档向量和其他结构化数据能力的数据库，我们使用 OceanBase 4.3.3 版本
+3. 若干分析用户问题、基于检索到的文档和用户问题生成回答的 LLM 智能体，利用通义千问的大模型能力构建
+4. 机器人与用户交互的聊天界面，采用 Streamlit 搭建
+
+### 交互流程
 
 ![RAG 流程](./demo/rag-flow.png)
 
+1. 用户在 Web 界面中输入想要咨询的问题并发送给机器人
+2. 机器人将用户提出的问题使用文本嵌入模型转换为向量
+3. 将用户提问转换而来的向量作为输入在 OceanBase 中检索最相似的向量
+4. OceanBase 返回最相似的一些向量和对应的文档内容
+5. 机器人将用户的问题和查询到的文档一起发送给大语言模型并请它生成问题的回答
+6. 大语言模型分片地、流式地将答案返回给机器人
+7. 机器人将接收到的答案也分片地、流式地显示在 Web 界面中，完成一轮问答
+
+## 概念解析
+
+### 什么是文本嵌入?
+
+文本嵌入是一种将文本转换为数值向量的技术。这些向量能够捕捉文本的语义信息，使计算机可以"理解"和处理文本的含义。具体来说:
+
+- 文本嵌入将词语或句子映射到高维向量空间中的点
+- 在这个向量空间中，语义相似的文本会被映射到相近的位置
+- 向量通常由数百个数字组成(如 512 维、1024 维等)
+- 可以用数学方法(如余弦相似度)计算向量之间的相似度
+- 常见的文本嵌入模型包括 Word2Vec、BERT、BGE 等
+
+在本项目中，我们使用通义千问的文本嵌入模型来生成文档的向量表示，这些向量将被存储在 OceanBase 数据库中用于后续的相似度检索。
+
+例如使用嵌入模型将“苹果”、“香蕉”和“橘子”分别转换为 4 维的向量，它们的向量表示可能如下图所示，需要注意的是我们为了方便表示，将向量的维度降低到了 4 维，实际上文本嵌入产生的向量维数通常是几百或者几千维，例如我们使用的通义千问 text-embedding-v3 产生的向量维度是 1024 维。
+
+![Embedding Example](./demo/embedding-example.png)
+
+### 什么是向量检索?
+
+向量检索是在向量数据库中快速找到与查询向量最相似的向量的技术。其核心特点包括:
+
+- 基于向量间的距离（如欧氏距离）或相似度（如余弦相似度）进行搜索
+- 通常使用近似最近邻（Approximate Nearest Neighbor, ANN）算法来提高检索效率
+- 常见的 ANN 算法包括 HNSW、IVF 等，OceanBase 4.3.3 支持 HNSW 算法
+- 可以快速从百万甚至亿级别的向量中找到最相似的结果
+- 相比传统关键词搜索，向量检索能更好地理解语义相似性
+
+OceanBase 在关系型数据库模型基础上将“向量”作为一种数据类型进行了完好的支持，使得在 OceanBase 一款数据库中能够同时针对向量数据和常规的结构化数据进行高效的存储和检索。在本项目中，我们会使用OceanBase 建立 HNSW (Hierarchical Navigable Small World) 向量索引来实现高效的向量检索，帮助我们快速找到与用户问题最相关的文档片段。
+
+如果我们在已经嵌入“苹果”、“香蕉”和“橘子”的 OceanBase 数据库中使用“红富士”作为查询文本，那么我们可能会得到如下的结果，其中“苹果”和“红富士”之间的相似度最高。（假设我们使用余弦相似度作为相似度度量）
+
+![Vector Search Example](./demo/vector-search-example.png)
+
+### 什么是 RAG?
+
+RAG (Retrieval-Augmented Generation，检索增强生成) 是一种结合检索系统和生成式 AI 的混合架构，用于提高 AI 回答的准确性和可靠性。其工作流程为:
+
+1. 检索阶段:
+
+- 将用户问题转换为向量
+- 在知识库中检索相关文档
+- 选择最相关的文档片段
+
+2. 生成阶段:
+
+- 将检索到的文档作为上下文提供给大语言模型
+- 大语言模型基于问题和上下文生成回答
+- 确保回答的内容来源可追溯
+
+RAG 的主要优势有：
+
+- 降低大语言模型的幻觉问题
+- 能够利用最新的知识和专业领域信息
+- 提供可验证和可追溯的答案
+- 适合构建特定领域的问答系统
+
+大语言模型的训练和发布需要耗费较长的时间，且训练数据在开启训练之后便停止了更新。而现实世界的信息熵增无时无刻不在持续，要让大语言模型在“昏迷”几个月之后还能自发地掌握当下最新的信息显然是不现实的。而 RAG 就是让大模型用上了“搜索引擎”，在回答问题前先获取新的知识输入，这样通常能较大幅度地提高生成回答的准确性。
+
 ## 准备工作
 
-注意：如果您正在参加 OceanBase AI 动手实战营，您可以跳过以下步骤 1 ~ 3。所有所需的软件都已经在机器上准备好了。:)
+注意：如果您正在参加 OceanBase AI 动手实战营，您可以跳过以下步骤 1 ~ 4。所有所需的软件都已经在机器上准备好了。:)
 
 1. 安装 [Python 3.9+](https://www.python.org/downloads/) 和 [pip](https://pip.pypa.io/en/stable/installation/)
 
-2. 安装 [Poetry](https://python-poetry.org/docs/)
-
-```bash
-python3 -m pip install poetry
-```
+2. 安装 [Poetry](https://python-poetry.org/docs/)，可参考命令 `python3 -m pip install poetry`
 
 3. 安装 [Docker](https://docs.docker.com/engine/install/)
 
-4. 注册 [智谱 AI](https://open.bigmodel.cn/) 账号并获取 API Key
+4. 安装 MySQL 客户端，可参考 `yum install -y mysql` 或者 `apt-get install -y mysql-client`
 
-![智谱 AI](./demo/zhipu-dashboard.png)
+5. 确保您机器上该项目的代码是最新的状态，建议进入项目目录执行 `git pull`
 
-![智谱 API Key](./demo/zhipu-api-key.png)
+6. 注册[阿里云百炼](https://bailian.console.aliyun.com/)账号并获取 API Key
+
+![阿里云百炼](./demo/dashboard.png)
+
+![获取阿里云百炼 API Key](./demo/get-api-key.png)
 
 ## 构建聊天机器人
 
@@ -50,7 +121,7 @@ systemctl start docker
 随后您可以使用以下命令启动一个 OceanBase docker 容器：
 
 ```bash
-docker run --ulimit stack=4294967296 --name=ob433 -e MODE=mini -e OB_MEMORY_LIMIT=8G -e OB_DATAFILE_SIZE=10G -e OB_CLUSTER_NAME=ailab2024 -p 127.0.0.1:2881:2881 -d quay.io/oceanbase/oceanbase-ce:4.3.3.1-101000012024102216
+docker run --name=ob433 -e MODE=mini -e OB_MEMORY_LIMIT=8G -e OB_DATAFILE_SIZE=10G -e OB_CLUSTER_NAME=ailab2024 -p 127.0.0.1:2881:2881 -d quay.io/oceanbase/oceanbase-ce:4.3.3.1-101000012024102216
 ```
 
 如果上述命令执行成功，将会打印容器 ID，如下所示：
@@ -81,26 +152,16 @@ Wait for observer init ok
 +------------+---------+------+-------+--------+
 | ip         | version | port | zone  | status |
 +------------+---------+------+-------+--------+
-| 172.17.0.2 | 4.3.3.0 | 2881 | zone1 | ACTIVE |
+| 172.17.0.2 | 4.3.3.1 | 2881 | zone1 | ACTIVE |
 +------------+---------+------+-------+--------+
 obclient -h172.17.0.2 -P2881 -uroot -Doceanbase -A
 
 cluster unique id: c17ea619-5a3e-5656-be07-00022aa5b154-19298807cfb-00030304
 
 obcluster running
-Trace ID: 08f99c98-8c37-11ef-ad07-0242ac110002
-If you want to view detailed obd logs, please run: obd display-trace 08f99c98-8c37-11ef-ad07-0242ac110002
-Get local repositories and plugins ok
-Open ssh connection ok
-Connect to observer ok
-Create tenant test ok
-Exec oceanbase-ce-4.3.3.0-100000142024101215.el8-3eee13839888800065c13ffc5cd7c3e6b12cb55c import_time_zone_info.py ok
-Exec oceanbase-ce-4.3.3.0-100000142024101215.el8-3eee13839888800065c13ffc5cd7c3e6b12cb55c import_srs_data.py ok
-obclient -h172.17.0.2 -P2881 -uroot@test -Doceanbase -A
 
-optimize tenant with scenario: express_oltp ok
-Trace ID: 3c50193c-8c37-11ef-ace2-0242ac110002
-If you want to view detailed obd logs, please run: obd display-trace 3c50193c-8c37-11ef-ace2-0242ac110002
+...
+
 check tenant connectable
 tenant is connectable
 boot success!
@@ -161,45 +222,47 @@ cp .env.example .env
 vi .env
 ```
 
-`.env.example` 文件的内容如下，如果您正在按照动手实战营的步骤进行操作（使用智谱 AI 提供的 LLM 能力），您只需要更新 `API_KEY` 为您从智谱 AI 控制台获取的值，其他值可以保留为默认值。
+`.env.example` 文件的内容如下，如果您正在按照动手实战营的步骤进行操作（使用通义千问提供的 LLM 能力），您只需要更新 `API_KEY` 为您从阿里云百炼控制台获取的值，其他值可以保留为默认值。
 
 ```bash
-API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # 把这个配置项更新为您从智谱 AI 上获取到的 API_KEY
-LLM_BASE_URL="https://open.bigmodel.cn/api/paas/v4/"
-LLM_MODEL="glm-4-flash"
+API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # 填写 API Key
+LLM_MODEL="qwen-turbo-2024-11-01"
+LLM_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
 
 HF_ENDPOINT=https://hf-mirror.com
 BGE_MODEL_PATH=BAAI/bge-m3
 
+OLLAMA_URL=
+OLLAMA_TOKEN=
+
+OPENAI_API_KEY= # 填写 API Key
+OPENAI_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
+OPENAI_EMBEDDING_MODEL=text-embedding-v3
+
 DB_HOST="127.0.0.1"
 DB_PORT="2881"
 DB_USER="root@test"
-DB_NAME="test"
+DB_NAME="" # 填写你的数据库名
 DB_PASSWORD=""
+
+UI_LANG="zh"
 ```
 
-### 4. 准备 BGE-M3 模型
+### 4. 创建数据库
 
-BGE-M3 是一个预训练模型，可以将文本转换为向量。它在多种语言的嵌入任务中表现良好，可以用于将 OceanBase 的开源文档嵌入成为向量。
-
-我们通过执行以下命令准备 BGE-M3 模型：
+您可使用我们准备好的创建数据库的脚本来完成快速创建，可参考如下命令:
 
 ```bash
-poetry run python utils/prepare_bgem3.py
+bash utils/create_db.sh
+# 如果有如下输出说明数据库创建完成
+# Database xxx created successfully
 ```
 
-BGE-M3 模型文件大小约为 2 ~ 3 GB，下载过程可能会花费较长时间，具体时间取决于您的网络状况。如果模型已经下载完成，这一步大约需要半分钟来加载模型。当模型准备好时，您将看到以下消息：
+可通过另外一个脚本来尝试连接数据库，以确保数据库创建成功：
 
 ```bash
-Fetching 30 files: 100%|████████████████████████████████████████████████████████████████| 30/30 [00:00<00:00, 104509.24it/s]
-/root/.cache/pypoetry/virtualenvs/ai-workshop-aLQYZfdO-py3.10/lib/python3.10/site-packages/FlagEmbedding/BGE_M3/modeling.py:335: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-  colbert_state_dict = torch.load(os.path.join(model_dir, 'colbert_linear.pt'), map_location='cpu')
-/root/.cache/pypoetry/virtualenvs/ai-workshop-aLQYZfdO-py3.10/lib/python3.10/site-packages/FlagEmbedding/BGE_M3/modeling.py:336: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-  sparse_state_dict = torch.load(os.path.join(model_dir, 'sparse_linear.pt'), map_location='cpu')
-
-===================================
-BGEM3FlagModel loaded successfully！
-===================================
+bash utils/connect_db.sh
+# 如果顺利进入 MySQL 连接当中，则验证了数据库创建成功
 ```
 
 ### 5. 准备文档数据
