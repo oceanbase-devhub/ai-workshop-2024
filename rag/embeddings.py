@@ -3,7 +3,6 @@ import enum
 import requests
 from typing import List, Union, Optional
 
-from FlagEmbedding import BGEM3FlagModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 
@@ -121,6 +120,11 @@ class BGEEmbedding(Embeddings):
         Both = "both"
 
     def __init__(self, default_embedding_type: EmbeddingType = EmbeddingType.Dense):
+        try:
+            from FlagEmbedding import BGEM3FlagModel
+        except Exception as e:
+            print("Module FlagEmbedding not found, execute poetry install --with local-embedding first")
+            exit(1)
         self.__model = BGEM3FlagModel(
             model_name_or_path=os.getenv("BGE_MODEL_PATH", "BAAI/bge-m3"),
             pooling_method="cls",
