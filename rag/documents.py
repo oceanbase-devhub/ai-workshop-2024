@@ -116,4 +116,5 @@ class MarkdownDocumentsLoader:
                 yield chunk
                 count += 1
                 if limit > 0 and count >= limit:
-                    break
+                    print(f"Limit reached: {limit}, exiting.")
+                    exit(0)
