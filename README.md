@@ -4,54 +4,127 @@
 
 ## Introduction
 
-In this workshop, we will build a simple chatbot that answers questions related to OceanBase documentation with RAG (Retrieval Augmented Generation) pattern. It takes open source documentation repos of OceanBase as source of multi modal data, transforms the documents into vectors and structured data and stores them in OceanBase. When a user asks a question, the chatbot retrieves the relevant documents from the database and generates answers based on the retrieved documents and the questions with LLM ability from Zhipu AI.
+In this workshop, we will build a RAG chatbot that answers questions related to OceanBase documentation. It uses open-source OceanBase documentation repositories as multi-modal data sources, converting documents into vectors and structured data stored in OceanBase. When users ask questions, the chatbot converts their questions into vectors and performs vector retrieval in the database. By combining the retrieved document content with the user's questions, it leverages Tongyi Qianwen's large language model capabilities to provide more accurate answers.
 
-1. A text embedding model that converts the documents into vectors, BGE-M3
-2. A database that offers abilities to store and query vectors and metadata of the documents, OceanBase
-3. Several LLM agents that analyze user's questions and generate answers based on the retrieved documents and the questions. (With help of Zhipu AI)
-4. A chat UI that interacts with the user. (Built with Streamlit)
+### Components
+
+The chatbot consists of the following components:
+
+1. A text embedding service that converts documents into vectors, using Tongyi Qianwen's embedding API
+2. A database that provides storage and query capabilities for document vectors and other structured data, using OceanBase 4.3.3
+3. Several LLM agents that analyze user questions and generate answers based on retrieved documents and questions, built with Tongyi Qianwen's large model capabilities
+4. A chat interface for user interaction, built with Streamlit
+
+### Interaction Flow
 
 ![RAG Flow](./demo/rag-flow.png)
 
+1. User inputs a question in the Web interface and sends it to the chatbot
+2. The chatbot converts the user's question into a vector using a text embedding model
+3. Uses the vector converted from the user's question as input to retrieve the most similar vectors in OceanBase
+4. OceanBase returns the most similar vectors and their corresponding document content
+5. The chatbot sends the user's question and retrieved documents to the large language model and requests it to generate an answer
+6. The large language model returns the answer in chunks, streaming fashion
+7. The chatbot displays the received answer in chunks, streaming fashion on the Web interface, completing one round of Q&A
+
+## Concepts
+
+### What is Text Embedding?
+
+Text embedding is a technique that converts text into numerical vectors. These vectors can capture the semantic information of text, enabling computers to "understand" and process the meaning of text. Specifically:
+
+- Text embedding maps words or sentences to points in a high-dimensional vector space
+- In this vector space, semantically similar texts are mapped to nearby locations
+- Vectors typically consist of hundreds of numbers (e.g., 512 dimensions, 1024 dimensions)
+- Vector similarity can be calculated using mathematical methods (e.g., cosine similarity)
+- Common text embedding models include Word2Vec, BERT, BGE, etc.
+
+In this project, we use Tongyi Qianwen's text embedding model to generate vector representations of documents, which will be stored in OceanBase database for subsequent similarity retrieval.
+
+For example, when using an embedding model to convert "apple", "banana", and "orange" into 4-dimensional vectors, their vector representations might look like the diagram below. Note that we reduced the vector dimensions to 4 for easier visualization - in practice, text embedding vectors usually have hundreds or thousands of dimensions. For instance, the text-embedding-v3 model we use from Tongyi Qianwen produces 1024-dimensional vectors.
+
+![Embedding Example](./demo/embedding-example.png)
+
+### What is Vector Retrieval?
+
+Vector retrieval is a technique for quickly finding the most similar vectors to a query vector in a vector database. Its key features include:
+
+- Search based on vector distance (e.g., Euclidean distance) or similarity (e.g., cosine similarity)
+- Typically uses Approximate Nearest Neighbor (ANN) algorithms to improve retrieval efficiency
+- Common ANN algorithms include HNSW, IVF, etc., with OceanBase 4.3.3 supporting the HNSW algorithm
+- Can quickly find the most similar results from millions or even billions of vectors
+- Compared to traditional keyword search, vector retrieval better understands semantic similarity
+
+OceanBase has added excellent support for "vector" as a data type in its relational database model, enabling efficient storage and retrieval of both vector data and conventional structured data in a single database. In this project, we use OceanBase's HNSW (Hierarchical Navigable Small World) vector index to implement efficient vector retrieval, helping us quickly find the most relevant document fragments for user questions.
+
+If we use "Fuji" as a query text in an OceanBase database that already has embeddings for "apple", "banana", and "orange", we might get results like the diagram below, where the similarity between "apple" and "Fuji" is highest. (Assuming we use cosine similarity as the similarity measure)
+
+![Vector Search Example](./demo/vector-search-example.png)
+
+### What is RAG?
+
+RAG (Retrieval-Augmented Generation) is a hybrid architecture that combines retrieval systems with generative AI to improve the accuracy and reliability of AI responses. The workflow consists of:
+
+1. Retrieval Phase:
+
+- Convert user questions into vectors
+- Retrieve relevant documents from the knowledge base
+- Select the most relevant document fragments
+
+2. Generation Phase:
+
+- Provide retrieved documents as context to the large language model
+- Generate answers based on questions and context
+- Ensure answer sources are traceable
+
+Key advantages of RAG:
+
+- Reduces hallucination problems in large language models
+- Can utilize latest knowledge and domain-specific information
+- Provides verifiable and traceable answers
+- Suitable for building domain-specific Q&A systems
+
+Training and releasing large language models takes considerable time, and training data stops updating once training begins. While the amount of information in the real world continues to increase constantly, it's unrealistic to expect language models to spontaneously master the latest information after being "unconscious" for several months. RAG essentially gives large models a "search engine", allowing them to acquire new knowledge input before answering questions, which typically significantly improves the accuracy of generated responses.
+
 ## Prerequisites
 
-Notes: If you are participating in the OceanBase AI Workshop, you can skip the following step 1 ~ 3. All the required software are already prepared for you. :)
+Notes: If you are participating in the OceanBase AI Workshop, you can skip steps 1 ~ 4 below. All required software is already prepared on the machine. :)
 
 1. Install [Python 3.9+](https://www.python.org/downloads/) and [pip](https://pip.pypa.io/en/stable/installation/)
 
-2. Install [Poetry](https://python-poetry.org/docs/)
-
-```bash
-python3 -m pip install poetry
-```
+2. Install [Poetry](https://python-poetry.org/docs/) with command `python3 -m pip install poetry`
 
 3. Install [Docker](https://docs.docker.com/engine/install/)
 
-4. Register an account for [Zhipu AI](https://open.bigmodel.cn/) and get the API key
+4. Install MySQL client, using `yum install -y mysql` or `apt-get install -y mysql-client`
 
-![Zhipu AI](./demo/zhipu-dashboard.png)
+5. Ensure your project code is up to date, recommended to run `git pull` in the project directory
 
-![Zhipu API Key](./demo/zhipu-api-key.png)
+6. Register an [Alibaba Cloud Bailian](https://bailian.console.aliyun.com/) account and obtain API Key
 
-## Steps to Build the Chatbot
+![Alibaba Cloud Bailian](./demo/dashboard.png)
+
+![Get Alibaba Cloud Bailian API Key](./demo/get-api-key.png)
+
+## Building the Chatbot
 
 ### 1. Deploy an OceanBase Cluster
 
-#### 1.1 Start an OceanBase docker container
+#### 1.1 Start an OceanBase Docker Container
 
-If you are the first time to login to the machine provided by the workshop, you need to start the docker service with the following command:
+If this is your first time logging into the machine provided by the workshop, you need to start the Docker service with:
 
 ```bash
 systemctl start docker
 ```
 
-And then, you can start an OceanBase docker container with the following command:
+Then you can start an OceanBase docker container with:
 
 ```bash
-docker run --ulimit stack=4294967296 --name=ob433 -e MODE=mini -e OB_MEMORY_LIMIT=8G -e OB_DATAFILE_SIZE=10G -e OB_CLUSTER_NAME=ailab2024 -p 127.0.0.1:2881:2881 -d quay.io/oceanbase/oceanbase-ce:4.3.3.1-101000012024102216
+docker run --name=ob433 -e MODE=mini -e OB_MEMORY_LIMIT=8G -e OB_DATAFILE_SIZE=10G -e OB_CLUSTER_NAME=ailab2024 -p 127.0.0.1:2881:2881 -d quay.io/oceanbase/oceanbase-ce:4.3.3.1-101000012024102216
 ```
 
-If the above command is executed successfully, you will see the following output:
+If the command executes successfully, it will print the container ID:
 
 ```bash
 af5b32e79dc2a862b5574d05a18c1b240dc5923f04435a0e0ec41d70d91a20ee
@@ -59,13 +132,13 @@ af5b32e79dc2a862b5574d05a18c1b240dc5923f04435a0e0ec41d70d91a20ee
 
 #### 1.2 Check the bootstrap of OceanBase is complete
 
-After the container is started, you can check the bootstrap status of OceanBase with the following command:
+After the container is started, you can check the bootstrap status of OceanBase with:
 
 ```bash
 docker logs -f ob433
 ```
 
-The initialization will take about 2 ~ 3 minutes. When you see the following message (the bottom `boot success!` is essential), the bootstrap of OceanBase is complete:
+The initialization takes about 2-3 minutes. When you see the following message (the bottom `boot success!` is essential), the bootstrap is complete:
 
 ```bash
 cluster scenario: express_oltp
@@ -79,32 +152,22 @@ Wait for observer init ok
 +------------+---------+------+-------+--------+
 | ip         | version | port | zone  | status |
 +------------+---------+------+-------+--------+
-| 172.17.0.2 | 4.3.3.0 | 2881 | zone1 | ACTIVE |
+| 172.17.0.2 | 4.3.3.1 | 2881 | zone1 | ACTIVE |
 +------------+---------+------+-------+--------+
 obclient -h172.17.0.2 -P2881 -uroot -Doceanbase -A
 
 cluster unique id: c17ea619-5a3e-5656-be07-00022aa5b154-19298807cfb-00030304
 
 obcluster running
-Trace ID: 08f99c98-8c37-11ef-ad07-0242ac110002
-If you want to view detailed obd logs, please run: obd display-trace 08f99c98-8c37-11ef-ad07-0242ac110002
-Get local repositories and plugins ok
-Open ssh connection ok
-Connect to observer ok
-Create tenant test ok
-Exec oceanbase-ce-4.3.3.0-100000142024101215.el8-3eee13839888800065c13ffc5cd7c3e6b12cb55c import_time_zone_info.py ok
-Exec oceanbase-ce-4.3.3.0-100000142024101215.el8-3eee13839888800065c13ffc5cd7c3e6b12cb55c import_srs_data.py ok
-obclient -h172.17.0.2 -P2881 -uroot@test -Doceanbase -A
 
-optimize tenant with scenario: express_oltp ok
-Trace ID: 3c50193c-8c37-11ef-ace2-0242ac110002
-If you want to view detailed obd logs, please run: obd display-trace 3c50193c-8c37-11ef-ace2-0242ac110002
+...
+
 check tenant connectable
 tenant is connectable
 boot success!
 ```
 
-Type `Ctrl+C` to exit the log view.
+Press `Ctrl+C` to exit the log view.
 
 #### 1.3 Test deployment (Optional)
 
@@ -159,115 +222,149 @@ cp .env.example .env
 vi .env
 ```
 
-The content of `.env.example` is as follows, you only need to update the `API_KEY` with the value you get from the Zhipu AI dashboard if you are following the workshop steps which will take LLMs from Zhipu AI. The other values can be kept as default values.
+The content of `.env.example` is as follows, you only need to update the `API_KEY` with the value you get from the Bailian dashboard if you are following the workshop steps which will take LLMs from Tongyi Qwen. The other values can be kept as default values.
 
 ```bash
-API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # Update this with the API key from Zhipu AI
-LLM_BASE_URL="https://open.bigmodel.cn/api/paas/v4/"
-LLM_MODEL="glm-4-flash"
+API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # Fill your API Key
+LLM_MODEL="qwen-turbo-2024-11-01"
+LLM_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
 
 HF_ENDPOINT=https://hf-mirror.com
 BGE_MODEL_PATH=BAAI/bge-m3
 
+OLLAMA_URL=
+OLLAMA_TOKEN=
+
+OPENAI_EMBEDDING_API_KEY= # Fill your API Key
+OPENAI_EMBEDDING_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
+OPENAI_EMBEDDING_MODEL=text-embedding-v3
+
 DB_HOST="127.0.0.1"
 DB_PORT="2881"
 DB_USER="root@test"
-DB_NAME="test"
+DB_NAME="" # Fill your database name
 DB_PASSWORD=""
+
+UI_LANG="zh"
 ```
 
-### 4. Prepare BGE-M3 model
+### 4. Create Database
 
-BGE-M3 is a pre-trained model that can convert the texts into vectors. It performs well in embedding multiple languages and can be used to embed the documents into vectors in this workshop.
-
-Execute the following command to prepare the BGE-M3 model:
+You can use our prepared script to quickly create the database:
 
 ```bash
-poetry run python utils/prepare_bgem3.py
+bash utils/create_db.sh
+# If you see the following output, the database creation is complete
+# Database xxx created successfully
 ```
 
-The size of BGE-M3 model is about 2 ~ 3 GB, so it will take some time to download it which depends on network situation. If the model is already downloaded, this step takes about half a minute to load the model. When the model is ready, you will see the following message:
+You can use another script to try connecting to the database to ensure it was created successfully:
 
 ```bash
-Fetching 30 files: 100%|████████████████████████████████████████████████████████████████| 30/30 [00:00<00:00, 104509.24it/s]
-/root/.cache/pypoetry/virtualenvs/ai-workshop-aLQYZfdO-py3.10/lib/python3.10/site-packages/FlagEmbedding/BGE_M3/modeling.py:335: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-  colbert_state_dict = torch.load(os.path.join(model_dir, 'colbert_linear.pt'), map_location='cpu')
-/root/.cache/pypoetry/virtualenvs/ai-workshop-aLQYZfdO-py3.10/lib/python3.10/site-packages/FlagEmbedding/BGE_M3/modeling.py:336: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-  sparse_state_dict = torch.load(os.path.join(model_dir, 'sparse_linear.pt'), map_location='cpu')
-
-===================================
-BGEM3FlagModel loaded successfully！
-===================================
+bash utils/connect_db.sh
+# If you successfully enter the MySQL connection, this verifies the database was created successfully
 ```
 
-### 5. Prepare document data
+### 5. Prepare Document Data
 
-#### 5.1 Download pre-processed data and load it (Fast, for Workshop Only)
+In this step, we will clone the open-source documentation repositories of OceanBase components and process them to generate document vectors and other structured data, which will then be inserted into the OceanBase database we deployed in step 1.
 
-In this step, we will load the pre-processed document data into the oceanbase database.
+#### 5.1 Clone Document Repositories
 
-```bash
-# Load the pre-processed document data
-poetry run python utils/load.py --source_file ~/data.json
-```
-
-It will take about 2 minutes to load data. The following output is expected: (The SAWarnings can be ignored)
-
-```bash
-args Namespace(table_name='corpus', source_file='/root/data.json', skip_create=False, insert_batch=100)
-  0%|                                                                                                                                                                                                                                                          | 0/27412 [00:00<?, ?it/s]
-/root/.cache/pypoetry/virtualenvs/ai-workshop-aLQYZfdO-py3.10/lib/python3.10/site-packages/pyobvector/client/ob_vec_client.py:329: SAWarning: Unknown schema content: '  VECTOR KEY `vidx` (`embedding`) WITH (DISTANCE=L2,M=16,EF_CONSTRUCTION=256,LIB=VSAG,TYPE=HNSW, EF_SEARCH=64) BLOCK_SIZE 16384'
-  table = Table(table_name, self.metadata_obj, autoload_with=self.engine)
-100%|██████████████████████████████████████████████████████████████████| 27412/27412 [01:44<00:00, 262.02it/s]
-```
-
-Notes: The `data.json` file is a pre-processed document data file that contains the document vectors and metadata. It was generated by step 5.2. If you want to generate the file by yourself, please go to step 5.2.
-
-#### 5.2 Clone document repositories and process them (Slow)
-
-Notes: This step may take a few hours or even longer to complete on CPU-only machine.
-
-In this step, we will clone the OceanBase document repositories and process them to generate the document vectors and metadata, which will be saved into the OceanBase database we deployed in step 1.
+First, we'll use git to clone the documentation for the observer and obd projects locally.
 
 ```bash
 cd doc_repos
 git clone --single-branch --branch V4.3.3 https://github.com/oceanbase/oceanbase-doc.git
-git clone --single-branch --branch V4.3.0 https://github.com/oceanbase/ocp-doc.git
-git clone --single-branch --branch V4.3.1 https://github.com/oceanbase/odc-doc.git
-git clone --single-branch --branch V4.2.5 https://github.com/oceanbase/oms-doc.git
-git clone --single-branch --branch V2.10.0 https://github.com/oceanbase/obd-doc.git
-git clone --single-branch --branch V4.3.0 https://github.com/oceanbase/oceanbase-proxy-doc.git
+git clone --single-branch --branch V2.10.1 https://github.com/oceanbase/obd-doc.git
 cd ..
 ```
 
+#### 5.2 Document Format Standardization
+
+Since some files in OceanBase's open-source documentation use `====` and `----` to represent level 1 and level 2 headings, in this step we'll convert them to the standard `#` and `##` representation.
+
 ```bash
-# Convert the headings to standard markdown format
+# Convert document headings to standard markdown format
 poetry run python convert_headings.py \
   doc_repos/oceanbase-doc/zh-CN \
-  doc_repos/ocp-doc/zh-CN \
-  doc_repos/odc-doc/zh-CN \
-  doc_repos/oms-doc/zh-CN \
-  doc_repos/obd-doc/zh-CN \
-  doc_repos/oceanbase-proxy-doc/zh-CN
+  doc_repos/obd-doc/zh-CN
+```
 
-# Embeds the documents into vectors
+#### 5.3 Convert Documents to Vectors and Insert into OceanBase
+
+We provide the `embed_docs.py` script which, when given a document directory and corresponding component, will traverse all markdown documents in the directory, split long documents into chunks, convert them into vectors using the embedding model, and finally insert the document chunk content, embedded vectors, and chunk metadata (in JSON format, including document title, relative path, component name, chunk title, cascading titles) together into the same table in OceanBase, ready for querying.
+
+```python
+# Generate document vectors and metadata
 poetry run python embed_docs.py --doc_base doc_repos/oceanbase-doc/zh-CN
-poetry run python embed_docs.py --doc_base doc_repos/ocp-doc/zh-CN --component ocp
-poetry run python embed_docs.py --doc_base doc_repos/odc-doc/zh-CN --component odc
-poetry run python embed_docs.py --doc_base doc_repos/oms-doc/zh-CN --component oms
 poetry run python embed_docs.py --doc_base doc_repos/obd-doc/zh-CN --component obd
-poetry run python embed_docs.py --doc_base doc_repos/oceanbase-proxy-doc/zh-CN --component odp
 ```
 
-If you want to extract the data generated and inserted into the database in the above steps and save it in a file named `my-data.json`, you can execute the following command:
+While waiting for the text processing, we can examine the contents of `embed_docs.py` to see how it works.
 
-```bash
-poetry run python utils/extract.py --output_file ~/my-data.json
+First, the file instantiates two objects: one is the embedding service `embeddings` responsible for converting text content into vector data; the other is OceanBase's LangChain Vector Store service, which encapsulates pyobvector (OceanBase's vector retrieval SDK) and provides simple, user-friendly interface methods. We've also established partition keys for OceanBase components to greatly improve efficiency when querying documents for specific components.
+
+```python
+embeddings = get_embedding(
+    ollama_url=os.getenv("OLLAMA_URL") or None,
+    ollama_token=os.getenv("OLLAMA_TOKEN") or None,
+    base_url=os.getenv("OPENAI_EMBEDDING_BASE_URL") or None,
+    api_key=os.getenv("OPENAI_EMBEDDING_API_KEY") or None,
+    model=os.getenv("OPENAI_EMBEDDING_MODEL") or None,
+)
+
+vs = OceanBase(
+    embedding_function=embeddings, # Pass in embedding service, called immediately when inserting documents
+    table_name=args.table_name,
+    connection_args=connection_args,
+    metadata_field="metadata",
+    extra_columns=[Column("component_code", Integer, primary_key=True)],
+    partitions=ObListPartition(
+        is_list_columns=False,
+        list_part_infos=[RangeListPartInfo(k, v) for k, v in cm.items()]
+        + [RangeListPartInfo("p10", "DEFAULT")],
+        list_expr="component_code",
+    ),
+    echo=args.echo,
+)
 ```
 
-This is the way how we get pre-processed data `data.json`.
+Next, the script checks if the vector functionality module is enabled in the connected OceanBase cluster, and if not, enables it using SQL commands.
 
-### 6. Start the chat UI
+```python
+# Check if vector module is enabled by querying ob_vector_memory_limit_percentage parameter
+params = vs.obvector.perform_raw_text_sql(
+    "SHOW PARAMETERS LIKE '%ob_vector_memory_limit_percentage%'"
+)
+# ...
+
+# Enable vector module by setting ob_vector_memory_limit_percentage parameter to 30
+vs.obvector.perform_raw_text_sql(
+  "ALTER SYSTEM SET ob_vector_memory_limit_percentage = 30"
+)
+```
+
+Finally, we traverse the document directory, read and chunk the document content, and submit it to OceanBase Vector Store for embedding and storage.
+
+```python
+if args.doc_base is not None:
+    loader = MarkdownDocumentsLoader(
+        doc_base=args.doc_base,
+        skip_patterns=args.skip_patterns,
+    )
+    batch = []
+    for doc in loader.load(limit=args.limit):
+        if len(batch) == args.batch_size:
+            insert_batch(batch, comp=args.component)
+            batch = []
+        batch.append(doc)
+
+    if len(batch) > 0:
+        insert_batch(batch, comp=args.component)
+```
+
+### 6. Start the Chat UI
 
 Execute the following command to start the chat UI:
 
@@ -275,51 +372,51 @@ Execute the following command to start the chat UI:
 poetry run streamlit run --server.runOnSave false chat_ui.py
 ```
 
-Visit the URL displayed in the terminal to chat with the chatbot.
+Visit the URL displayed in the terminal to open the chatbot application UI.
 
 ```bash
   You can now view your Streamlit app in your browser.
 
   Local URL: http://localhost:8501
   Network URL: http://172.xxx.xxx.xxx:8501
-  External URL: http://xxx.xxx.xxx.xxx:8501 # This is the URL you can visit from your browser
+  External URL: http://xxx.xxx.xxx.xxx:8501 # This is the URL you can access from your browser
 ```
 
-![](./demo/chatbot-ui.png)
+![Chat UI](./demo/chatbot-ui.png)
 
 ## FAQ
 
-### 1. How to change LLM model that used to generate the response?
+### 1. How to change the LLM model used for generating responses?
 
-You can change the LLM model by updating the `LLM_MODEL` environment variable in the `.env` file. The default value is `glm-4-flash`, which is a free model provided by Zhipu AI. There are other models available like `glm-4-air`, `glm-4-plus`, `glm-4-long` etc. You can find the full list of models on the [Zhipu AI website](https://open.bigmodel.cn).
+You can change the LLM model by updating the `LLM_MODEL` environment variable in the `.env` file, or by modifying the "Large Language Model" in the left sidebar of the chat interface. The default value is `qwen-turbo-2024-11-01`, which is a recently released model from Tongyi Qianwen with a relatively high free quota. Other available models include `qwen-plus`, `qwen-max`, `qwen-long`, etc. You can find the complete list of available models in the [Alibaba Cloud Bailian website](https://bailian.console.aliyun.com/)'s model marketplace. Please note the free quotas and pricing standards.
 
-### 2. Can I update the document data after the initial loading?
+### 2. Can I update document data after initial loading?
 
-Of course you can. You can insert new document data by running the `embed_docs.py` script. For example:
+Of course. You can insert new document data by running the `embed_docs.py` script. For example:
 
 ```bash
-# This will embed all markdown files in the current directory, which contains README.md and LEGAL.md
+# This will embed all markdown files in the current directory, including README.md and LEGAL.md
 poetry run python embed_docs.py --doc_base .
 
 # Or you can specify the table to insert data into
 poetry run python embed_docs.py --doc_base . --table_name my_table
 ```
 
-Then you can specify the `TABLE_NAME` environment variable before launch the chat UI to start chat with your own new table:
+Then you can specify the `TABLE_NAME` environment variable before launching the chat interface to specify which table the chatbot will query:
 
 ```bash
 TABLE_NAME=my_table poetry run streamlit run --server.runOnSave false chat_ui.py
 ```
 
-### 3. How to see the SQL statements executed by the database during the embedding and retrieval process?
+### 3. How to see the SQL statements executed by the database during embedding and retrieval?
 
-When you insert documents yourself, you can set the `--echo` flag to see the SQL statements executed by the script like following:
+When inserting documents yourself, you can set the `--echo` flag to see the SQL statements executed by the script:
 
 ```bash
 poetry run python embed_docs.py --doc_base . --table_name my_table --echo
 ```
 
-You will see the output like this:
+You will see output like this:
 
 ```bash
 2024-10-16 03:17:13,439 INFO sqlalchemy.engine.Engine
@@ -334,16 +431,16 @@ CREATE TABLE my_table (
 ...
 ```
 
-You can also set `ECHO=true` before launch the chat UI to see the SQL statements executed by the chat UI.
+You can also set `ECHO=true` before launching the chat UI to see the SQL statements executed by the chat UI.
 
 ```bash
 ECHO=true TABLE_NAME=my_table poetry run streamlit run --server.runOnSave false chat_ui.py
 ```
 
-### 4. Why my modification to the environment variables in the `.env` file after the chat UI has started does not take effect?
+### 4. Why don't changes to the .env file take effect after starting the UI service?
 
-You need to restart the chat UI after modifying the `.env` file to make the changes take effect. You can stop the chat UI by pressing `Ctrl+C` in the terminal and then start it again.
+If you edit the .env file or code files, you need to restart the UI service for the changes to take effect. You can terminate the service with `Ctrl + C`, then run `poetry run streamlit run --server.runOnSave false chat_ui.py` again to restart the service.
 
-### 5. How to change language of the chat UI?
+### 5. How to change the language of the chat UI?
 
-You can change the language of the chat UI by updating the `UI_LANG` environment variable in the `.env` file. The default value is `zh`, which means Chinese. You can change it to `en` to switch to English. You need to restart the chat UI after modifying the `.env` file to make the changes take effect.
+You can change the language of the chat interface by updating the `UI_LANG` environment variable in the `.env` file. The default value is `zh`, which means Chinese. You can change it to `en` to switch to English. You need to restart the UI after updating for the changes to take effect.

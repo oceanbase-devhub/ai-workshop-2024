@@ -267,70 +267,102 @@ bash utils/connect_db.sh
 
 ### 5. 准备文档数据
 
-#### 5.1 下载预处理数据并加载（速度快，仅限动手实战营活动中使用）
+在该步骤中，我们将克隆 OceanBase 相关组件的开源文档仓库并处理它们，生成文档的向量数据和其他结构化数据后将数据插入到我们在步骤 1 中部署好的 OceanBase 数据库。
 
-在这一步中，我们将加载预处理的文档数据到 OceanBase 数据库中。
+#### 5.1 克隆文档仓库
 
-```bash
-# 加载预处理的文档数据
-poetry run python utils/load.py --source_file ~/data.json
-```
-
-加载数据大约需要 2 分钟。您将看到以下输出：（SAWarnings 可以忽略）
-
-```bash
-args Namespace(table_name='corpus', source_file='/root/data.json', skip_create=False, insert_batch=100)
-  0%|                                                                                                                                                                                                                                                          | 0/27412 [00:00<?, ?it/s]
-/root/.cache/pypoetry/virtualenvs/ai-workshop-aLQYZfdO-py3.10/lib/python3.10/site-packages/pyobvector/client/ob_vec_client.py:329: SAWarning: Unknown schema content: '  VECTOR KEY `vidx` (`embedding`) WITH (DISTANCE=L2,M=16,EF_CONSTRUCTION=256,LIB=VSAG,TYPE=HNSW, EF_SEARCH=64) BLOCK_SIZE 16384'
-  table = Table(table_name, self.metadata_obj, autoload_with=self.engine)
-100%|██████████████████████████████████████████████████████████████████| 27412/27412 [01:44<00:00, 262.02it/s]
-```
-
-注意：`data.json` 文件是一个预处理的文档数据文件，包含文档的向量数据和元数据。它是由步骤 5.2 处理得到、并通过执行 `utils/extract.py` 脚本提取出来的。如果您不想使用预处理数据而是打算自己嵌入文档并插入数据库，请转到步骤 5.2。
-
-#### 5.2 克隆文档仓库并处理（速度慢）
-
-注意：步骤 5.2 在 CPU 机器上通常要花费几个小时甚至更长的时间。
-
-在该步骤中，我们将克隆 OceanBase 开源文档仓库并处理它们，生成文档的向量数据和其他结构化数据后将数据插入到我们在步骤 1 部署好的 OceanBase 数据库中。
+首先我们将使用 git 克隆 observer 和 obd 两个项目的文档到本地。
 
 ```bash
 cd doc_repos
 git clone --single-branch --branch V4.3.3 https://github.com/oceanbase/oceanbase-doc.git
-git clone --single-branch --branch V4.3.0 https://github.com/oceanbase/ocp-doc.git
-git clone --single-branch --branch V4.3.1 https://github.com/oceanbase/odc-doc.git
-git clone --single-branch --branch V4.2.5 https://github.com/oceanbase/oms-doc.git
-git clone --single-branch --branch V2.10.0 https://github.com/oceanbase/obd-doc.git
-git clone --single-branch --branch V4.3.0 https://github.com/oceanbase/oceanbase-proxy-doc.git
+git clone --single-branch --branch V2.10.1 https://github.com/oceanbase/obd-doc.git
 cd ..
 ```
+
+#### 5.2 文档格式标准化
+
+因为 OceanBase 的开源文档中有些文件使用 `====` 和 `----` 来表示一级标题和二级标题，我们在这一步将其转化为标准的 `#` 和 `##` 表示。
 
 ```bash
 # 把文档的标题转换为标准的 markdown 格式
 poetry run python convert_headings.py \
   doc_repos/oceanbase-doc/zh-CN \
-  doc_repos/ocp-doc/zh-CN \
-  doc_repos/odc-doc/zh-CN \
-  doc_repos/oms-doc/zh-CN \
-  doc_repos/obd-doc/zh-CN \
-  doc_repos/oceanbase-proxy-doc/zh-CN
+  doc_repos/obd-doc/zh-CN
+```
 
+#### 5.3 将文档转换为向量并插入 OceanBase 数据库
+
+我们提供了 `embed_docs.py` 脚本，通过指定文档目录和对应的组件后，该脚本就会遍历目录中的所有 markdown 格式的文档，将长文档进行切片后使用嵌入模型转换为向量，并最终将文档切片的内容、嵌入的向量和切片的元信息（JSON 格式，包含文档标题、相对路径、组件名称、切片标题、级联标题）一同插入到 OceanBase 的同一张表中，作为预备数据待查。
+
+```python
 # 生成文档向量和元数据
 poetry run python embed_docs.py --doc_base doc_repos/oceanbase-doc/zh-CN
-poetry run python embed_docs.py --doc_base doc_repos/ocp-doc/zh-CN --component ocp
-poetry run python embed_docs.py --doc_base doc_repos/odc-doc/zh-CN --component odc
-poetry run python embed_docs.py --doc_base doc_repos/oms-doc/zh-CN --component oms
 poetry run python embed_docs.py --doc_base doc_repos/obd-doc/zh-CN --component obd
-poetry run python embed_docs.py --doc_base doc_repos/oceanbase-proxy-doc/zh-CN --component odp
 ```
 
-如果你想要将上述步骤生成并插入到数据库中的数据提取出来保存在 `my-data.json` 的文件中，可以执行以下命令：
+在等待文本处理的过程中我们可以浏览 `embed_docs.py` 的内容，观察它是如何工作的。
 
-```bash
-poetry run python utils/extract.py --output_file ~/my-data.json
+首先在该文件中实例化了两个对象，一个是负责将文本内容转化为向量数据的嵌入服务 `embeddings`；另一个是 OceanBase 对接的 LangChain Vector Store 服务，封装了 pyobvector 这个 OceanBase 的向量检索 SDK，为用户提供简单易用的接口方法。同时我们针对 OceanBase 组件建立了分区键，在需要定向查询某个组件的文档时能极大提升效率。
+
+```python
+embeddings = get_embedding(
+    ollama_url=os.getenv("OLLAMA_URL") or None,
+    ollama_token=os.getenv("OLLAMA_TOKEN") or None,
+    base_url=os.getenv("OPENAI_EMBEDDING_BASE_URL") or None,
+    api_key=os.getenv("OPENAI_EMBEDDING_API_KEY") or None,
+    model=os.getenv("OPENAI_EMBEDDING_MODEL") or None,
+)
+
+vs = OceanBase(
+    embedding_function=embeddings, # 传入嵌入服务，将在插入文档时即时调用
+    table_name=args.table_name,
+    connection_args=connection_args,
+    metadata_field="metadata",
+    extra_columns=[Column("component_code", Integer, primary_key=True)],
+    partitions=ObListPartition(
+        is_list_columns=False,
+        list_part_infos=[RangeListPartInfo(k, v) for k, v in cm.items()]
+        + [RangeListPartInfo("p10", "DEFAULT")],
+        list_expr="component_code",
+    ),
+    echo=args.echo,
+)
 ```
 
-这就是我们获取预处理数据 `data.json` 的方法。
+接下来，该脚本判断所连接的 OceanBase 集群是否已开启了向量功能模块，如果没有开启则使用 SQL 命令进行启动。
+
+```python
+# 通过查询 ob_vector_memory_limit_percentage 参数判断是否已开启向量功能模块
+params = vs.obvector.perform_raw_text_sql(
+    "SHOW PARAMETERS LIKE '%ob_vector_memory_limit_percentage%'"
+)
+# ...
+
+# 通过将 ob_vector_memory_limit_percentage 参数设置为 30 来开启向量功能模块
+vs.obvector.perform_raw_text_sql(
+  "ALTER SYSTEM SET ob_vector_memory_limit_percentage = 30"
+)
+```
+
+最后，我们遍历文档目录，将文档内容读取并切片之后提交给 OceanBase Vector Store 进行嵌入和存储。
+
+```python
+if args.doc_base is not None:
+    loader = MarkdownDocumentsLoader(
+        doc_base=args.doc_base,
+        skip_patterns=args.skip_patterns,
+    )
+    batch = []
+    for doc in loader.load(limit=args.limit):
+        if len(batch) == args.batch_size:
+            insert_batch(batch, comp=args.component)
+            batch = []
+        batch.append(doc)
+
+    if len(batch) > 0:
+        insert_batch(batch, comp=args.component)
+```
 
 ### 6. 启动聊天界面
 
@@ -350,13 +382,13 @@ poetry run streamlit run --server.runOnSave false chat_ui.py
   External URL: http://xxx.xxx.xxx.xxx:8501 # 这是您可以从浏览器访问的 URL
 ```
 
-![](./demo/chatbot-ui.png)
+![Chat UI](./demo/chatbot-ui.png)
 
 ## FAQ
 
 ### 1. 如何更改用于生成回答的 LLM 模型？
 
-您可以通过更新 `.env` 文件中的 `LLM_MODEL` 环境变量来更改 LLM 模型。默认值是 `glm-4-flash`，这是智谱 AI 提供的免费模型。还有其他可用的模型，如 `glm-4-air`、`glm-4-plus`、`glm-4-long` 等。您可以在[智谱 AI 网站](https://open.bigmodel.cn) 上找到完整的模型列表。
+您可以通过更新 `.env` 文件中的 `LLM_MODEL` 环境变量来更改 LLM 模型，或者是在启动的对话界面左侧修改“大语言模型”。默认值是 `qwen-turbo-2024-11-01`，这是通义千问近期推出的具有较高免费额度的模型。还有其他可用的模型，如 `qwen-plus`、`qwen-max`、`qwen-long` 等。您可以在[阿里云百炼网站](https://bailian.console.aliyun.com/)的模型广场中找到完整的可用模型列表。请注意免费额度及计费标准。
 
 ### 2. 是否可以在初始加载后更新文档数据？
 
