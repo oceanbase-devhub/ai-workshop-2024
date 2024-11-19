@@ -74,6 +74,8 @@ with st.sidebar:
             index=0,
             help=t("llm_model_help", lang),
         )
+    else:
+        llm_model = st.text_input(t("llm_model", lang), value=os.getenv("LLM_MODEL", ""))
     history_len = st.slider(
         t("chat_history_len", lang),
         min_value=0,

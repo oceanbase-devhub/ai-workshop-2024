@@ -23,8 +23,8 @@ from langchain_community.vectorstores import OceanBase
 embeddings = get_embedding(
     ollama_url=os.getenv("OLLAMA_URL") or None,
     ollama_token=os.getenv("OLLAMA_TOKEN") or None,
-    base_url=os.getenv("OPENAI_BASE_URL") or None,
-    api_key=os.getenv("OPENAI_API_KEY") or None,
+    base_url=os.getenv("OPENAI_EMBEDDING_BASE_URL") or None,
+    api_key=os.getenv("OPENAI_EMBEDDING_API_KEY") or None,
     model=os.getenv("OPENAI_EMBEDDING_MODEL") or None,
 )
 
@@ -121,9 +121,9 @@ def extract_users_input(history: list[dict]) -> str:
 def doc_rag_stream(
     query: str,
     chat_history: list[dict],
+    llm_model: str,
     suffixes: list[any] = [],
     universal_rag: bool = False,
-    llm_model: str = "glm-4-flash",
     rerank: bool = False,
     search_docs: bool = True,
     lang: str = "zh",
@@ -149,7 +149,7 @@ def doc_rag_stream(
         yield t("analyzing_intent", lang) + get_elapsed_tips(
             start_time, start_time, lang=lang
         )
-        iga = AgentBase(prompt=guard_prompt, llm_model="glm-4-flash")
+        iga = AgentBase(prompt=guard_prompt, llm_model=llm_model)
         guard_res = iga.invoke_json(query)
         if hasattr(guard_res, "get"):
             query_type = guard_res.get("type", "Features")
@@ -168,7 +168,7 @@ def doc_rag_stream(
                 start_time, lang=lang
             )
             history_text = extract_users_input(chat_history)
-            caa_agent = AgentBase(prompt=caa_prompt, llm_model="glm-4-flash")
+            caa_agent = AgentBase(prompt=caa_prompt, llm_model=llm_model)
             analyze_res = caa_agent.invoke_json(
                 query="\n".join([history_text, query]),
                 background_history=[],

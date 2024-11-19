@@ -235,8 +235,8 @@ BGE_MODEL_PATH=BAAI/bge-m3
 OLLAMA_URL=
 OLLAMA_TOKEN=
 
-OPENAI_API_KEY= # 填写 API Key
-OPENAI_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
+OPENAI_EMBEDDING_API_KEY= # 填写 API Key
+OPENAI_EMBEDDING_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
 OPENAI_EMBEDDING_MODEL=text-embedding-v3
 
 DB_HOST="127.0.0.1"
