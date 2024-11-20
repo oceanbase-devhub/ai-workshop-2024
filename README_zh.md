@@ -242,7 +242,7 @@ OPENAI_EMBEDDING_MODEL=text-embedding-v3
 DB_HOST="127.0.0.1"
 DB_PORT="2881"
 DB_USER="root@test"
-DB_NAME="" # 填写你的数据库名
+DB_NAME="test"
 DB_PASSWORD=""
 
 UI_LANG="zh"
@@ -250,19 +250,11 @@ UI_LANG="zh"
 
 ### 4. 创建数据库
 
-您可使用我们准备好的创建数据库的脚本来完成快速创建，可参考如下命令:
-
-```bash
-bash utils/create_db.sh
-# 如果有如下输出说明数据库创建完成
-# Database xxx created successfully
-```
-
-可通过另外一个脚本来尝试连接数据库，以确保数据库创建成功：
+您可使用我们准备好的脚本来尝试连接数据库，以确保数据库相关的环境变量设置成功：
 
 ```bash
 bash utils/connect_db.sh
-# 如果顺利进入 MySQL 连接当中，则验证了数据库创建成功
+# 如果顺利进入 MySQL 连接当中，则验证了环境变量设置成功
 ```
 
 ### 5. 准备文档数据

@@ -242,7 +242,7 @@ OPENAI_EMBEDDING_MODEL=text-embedding-v3
 DB_HOST="127.0.0.1"
 DB_PORT="2881"
 DB_USER="root@test"
-DB_NAME="" # Fill your database name
+DB_NAME="test"
 DB_PASSWORD=""
 
 UI_LANG="zh"
@@ -250,19 +250,11 @@ UI_LANG="zh"
 
 ### 4. Create Database
 
-You can use our prepared script to quickly create the database:
-
-```bash
-bash utils/create_db.sh
-# If you see the following output, the database creation is complete
-# Database xxx created successfully
-```
-
-You can use another script to try connecting to the database to ensure it was created successfully:
+You can use our prepared script to try connecting to the database to ensure database-related environment variables are set correctly:
 
 ```bash
 bash utils/connect_db.sh
-# If you successfully enter the MySQL connection, this verifies the database was created successfully
+# If you successfully enter the MySQL connection, this verifies that the database-related environment variables are set correctly.
 ```
 
 ### 5. Prepare Document Data
