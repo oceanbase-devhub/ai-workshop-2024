@@ -247,7 +247,7 @@ cp .env.example .env
 vi .env
 ```
 
-`.env.example` 文件的内容如下，如果您正在按照动手实战营的步骤进行操作（使用通义千问提供的 LLM 能力），您只需要更新 `API_KEY` 为您从阿里云百炼控制台获取的值，其他值可以保留为默认值。
+`.env.example` 文件的内容如下，如果您正在按照动手实战营的步骤进行操作（使用通义千问提供的 LLM 能力），您需要把 `API_KEY` 和 `OPENAI_EMBEDDING_API_KEY` 更新为您从阿里云百炼控制台获取的 API KEY 值，如果您使用 OB Cloud 的数据库实例，请将 DB_ 开头的变量更新为您的数据库连接信息，然后保存文件。
 
 ```bash
 API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # 填写 API Key
@@ -264,13 +264,14 @@ OPENAI_EMBEDDING_API_KEY= # 填写 API Key
 OPENAI_EMBEDDING_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
 OPENAI_EMBEDDING_MODEL=text-embedding-v3
 
+UI_LANG="zh"
+
+# 如果你使用的是 OB Cloud 的实例，请根据实例的连接信息更新下面的变量
 DB_HOST="127.0.0.1"
 DB_PORT="2881"
 DB_USER="root@test"
 DB_NAME="test"
 DB_PASSWORD=""
-
-UI_LANG="zh"
 ```
 
 ### 4. 连接数据库
@@ -425,7 +426,7 @@ poetry run python embed_docs.py --doc_base . --table_name my_table
 TABLE_NAME=my_table poetry run streamlit run --server.runOnSave false chat_ui.py
 ```
 
-### 3. 如何知道嵌入和检索过程中数据库执行的操作？
+### 3. 如何查看嵌入和检索过程中数据库执行的操作？
 
 当您自己插入文档时，可以设置 `--echo` 标志来查看脚本执行的 SQL 语句，如下所示：
 

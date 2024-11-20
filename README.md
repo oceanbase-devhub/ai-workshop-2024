@@ -247,7 +247,7 @@ cp .env.example .env
 vi .env
 ```
 
-The content of `.env.example` is as follows, you only need to update the `API_KEY` with the value you get from the Bailian dashboard if you are following the workshop steps which will take LLMs from Tongyi Qwen. The other values can be kept as default values.
+The content of `.env.example` is as follows, you only need to update the `API_KEY` and `OPENAI_EMBEDDING_API_KEY` with the value you get from the Bailian dashboard if you are following the workshop steps which will take LLMs from Tongyi Qwen. If you are using the OB Cloud instance, update the database-related environment variables accordingly. After updating the `.env` file, save and exit the editor.
 
 ```bash
 API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # Fill your API Key
@@ -264,13 +264,14 @@ OPENAI_EMBEDDING_API_KEY= # Fill your API Key
 OPENAI_EMBEDDING_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
 OPENAI_EMBEDDING_MODEL=text-embedding-v3
 
-DB_HOST="127.0.0.1"
+UI_LANG="zh"
+
+# If you are using the OB Cloud instance, update the following database-related environment variables accordingly
+DB_HOST="127.0.0.1" 
 DB_PORT="2881"
 DB_USER="root@test"
 DB_NAME="test"
 DB_PASSWORD=""
-
-UI_LANG="zh"
 ```
 
 ### 4. Connect to the Database
