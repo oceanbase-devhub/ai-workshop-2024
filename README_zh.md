@@ -55,7 +55,7 @@
 - 可以快速从百万甚至亿级别的向量中找到最相似的结果
 - 相比传统关键词搜索，向量检索能更好地理解语义相似性
 
-OceanBase 在关系型数据库模型基础上将“向量”作为一种数据类型进行了完好的支持，使得在 OceanBase 一款数据库中能够同时针对向量数据和常规的结构化数据进行高效的存储和检索。在本项目中，我们会使用OceanBase 建立 HNSW (Hierarchical Navigable Small World) 向量索引来实现高效的向量检索，帮助我们快速找到与用户问题最相关的文档片段。
+OceanBase 在关系型数据库模型基础上将“向量”作为一种数据类型进行了完好的支持，使得在 OceanBase 一款数据库中能够同时针对向量数据和常规的结构化数据进行高效的存储和检索。在本项目中，我们会使用 OceanBase 建立 HNSW (Hierarchical Navigable Small World) 向量索引来实现高效的向量检索，帮助我们快速找到与用户问题最相关的文档片段。
 
 如果我们在已经嵌入“苹果”、“香蕉”和“橘子”的 OceanBase 数据库中使用“红富士”作为查询文本，那么我们可能会得到如下的结果，其中“苹果”和“红富士”之间的相似度最高。（假设我们使用余弦相似度作为相似度度量）
 
@@ -108,9 +108,34 @@ RAG 的主要优势有：
 
 ## 构建聊天机器人
 
-### 1. 部署 OceanBase 集群
+### 1. 获取 OceanBase 数据库
 
-#### 1.1 启动 OceanBase docker 容器
+我们首先要获取 OceanBase 4.3.3 版本及以上的数据库来存储我们的向量数据。您可以通过以下两种方式获取 OceanBase 数据库：
+
+1. 使用 OB Cloud 云数据库免费试用版，平台注册和实例开通请参考[OB Cloud 云数据库 365 天免费试用](https://www.oceanbase.com/free-trial)；（推荐）
+2. 使用 Docker 启动单机版 OceanBase 数据库。（备选，需要有 Docker 环境，消耗较多本地资源）
+
+#### 1.1 使用 OB Cloud 云数据库免费试用版
+
+##### 注册并开通实例
+
+进入[OB Cloud 云数据库 365 天免费试用](https://www.oceanbase.com/free-trial)页面，点击“立即试用”按钮，注册并登录账号，填写相关信息，开通实例，等待创建完成。
+
+##### 获取数据库实例连接串
+
+进入实例详情页的“实例工作台”，点击“连接”-“获取连接串”按钮来获取数据库连接串，将其中的连接信息填入后续步骤中创建的 .env 文件内。
+
+![获取数据库连接串](./demo/obcloud-get-connection.png)
+
+##### 修改参数启用向量模块
+
+进入实例详情页的“参数管理”，将 `ob_vector_memory_limit_percentage` 参数修改为 30 以启动向量模块。
+
+![修改参数以启用向量功能](./demo/obcloud-modify-param.png)
+
+#### 1.2 使用 Docker 启动单机版 OceanBase 数据库
+
+##### 启动 OceanBase 容器
 
 如果你是第一次登录动手实战营提供的机器，你需要通过以下命令启动 Docker 服务：
 
@@ -130,7 +155,7 @@ docker run --name=ob433 -e MODE=mini -e OB_MEMORY_LIMIT=8G -e OB_DATAFILE_SIZE=1
 af5b32e79dc2a862b5574d05a18c1b240dc5923f04435a0e0ec41d70d91a20ee
 ```
 
-#### 1.2 检查 OceanBase 初始化是否完成
+##### 检查 OceanBase 数据库初始化是否完成
 
 容器启动后，您可以使用以下命令检查 OceanBase 数据库初始化状态：
 
@@ -169,7 +194,7 @@ boot success!
 
 使用 `Ctrl + C` 退出日志查看界面。
 
-#### 1.3 测试数据库部署情况（可选）
+##### 测试数据库部署情况（可选）
 
 可以使用 mysql 客户端连接到 OceanBase 集群，检查数据库部署情况。
 

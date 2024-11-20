@@ -108,9 +108,34 @@ Notes: If you are participating in the OceanBase AI Workshop, you can skip steps
 
 ## Building the Chatbot
 
-### 1. Deploy an OceanBase Cluster
+### 1. Get an OceanBase Database
 
-#### 1.1 Start an OceanBase Docker Container
+First, we need to obtain an OceanBase database version 4.3.3 or above to store our vector data. You can get an OceanBase database through either of these two methods:
+
+1. Use the OB Cloud database free trial instances. For platform registration and instance creation, please refer to [OB Cloud Database 365-Day Free Trial](https://www.oceanbase.com/free-trial); (Recommended)
+2. Use Docker to start a standalone OceanBase database. (Alternative option, requires Docker environment, consumes more local resources)
+
+#### 1.1 Using OB Cloud Database Free Trial Version
+
+##### Register and Create an Instance
+
+Visit the [OB Cloud Database 365-Day Free Trial](https://www.oceanbase.com/free-trial) web page, click the "Try Now" button, register and log in to your account, fill in the relevant information, create an instance, and wait for creation to complete.
+
+##### Get Database Instance Connection Information
+
+Go to the "Instance Workbench" on the instance details page, click the "Connect"-"Get Connection String" button to obtain the database connection information. Fill the connection information into the .env file that will be created in subsequent steps.
+
+![Get Database Connection Information](./demo/obcloud-get-connection.png)
+
+##### Modify Parameters to Enable Vector Module
+
+Go to "Parameter Management" on the instance details page, and set the `ob_vector_memory_limit_percentage` parameter to 30 to enable the vector module.
+
+![Modify Parameters to Enable Vector Module](./demo/obcloud-modify-param.png)
+
+#### 1.2 Deploy an OceanBase Database with Docker
+
+##### Start an OceanBase Container
 
 If this is your first time logging into the machine provided by the workshop, you need to start the Docker service with:
 
@@ -130,7 +155,7 @@ If the command executes successfully, it will print the container ID:
 af5b32e79dc2a862b5574d05a18c1b240dc5923f04435a0e0ec41d70d91a20ee
 ```
 
-#### 1.2 Check the bootstrap of OceanBase is complete
+##### Check the bootstrap of OceanBase is complete
 
 After the container is started, you can check the bootstrap status of OceanBase with:
 
@@ -169,7 +194,7 @@ boot success!
 
 Press `Ctrl+C` to exit the log view.
 
-#### 1.3 Test deployment (Optional)
+##### Test deployment (Optional)
 
 Connect to the OceanBase cluster with mysql client to check the deployment.
 
