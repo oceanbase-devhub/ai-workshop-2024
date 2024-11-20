@@ -90,7 +90,7 @@ Training and releasing large language models takes considerable time, and traini
 
 Notes: If you are participating in the OceanBase AI Workshop, you can skip steps 1 ~ 4 below. All required software is already prepared on the machine. :)
 
-1. Install [Python 3.9+](https://www.python.org/downloads/) and [pip](https://pip.pypa.io/en/stable/installation/)
+1. Install [Python 3.9+](https://www.python.org/downloads/) and [pip](https://pip.pypa.io/en/stable/installation/). If the version of Python on your machine is lower than 3.9, you can use Miniconda to create a new environment with Python 3.9. Refer to the [Miniconda installation guide](https://docs.anaconda.com/miniconda/install/) for details.
 
 2. Install [Poetry](https://python-poetry.org/docs/) with command `python3 -m pip install poetry`
 
@@ -248,7 +248,7 @@ DB_PASSWORD=""
 UI_LANG="zh"
 ```
 
-### 4. Create Database
+### 4. Connect to the Database
 
 You can use our prepared script to try connecting to the database to ensure database-related environment variables are set correctly:
 
