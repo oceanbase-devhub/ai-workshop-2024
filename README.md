@@ -292,10 +292,7 @@ In this step, we will clone the open-source documentation repositories of OceanB
 First, we'll use git to clone the documentation for the observer and obd projects locally.
 
 ```bash
-cd doc_repos
-git clone --single-branch --branch V4.3.3 https://github.com/oceanbase/oceanbase-doc.git
-git clone --single-branch --branch V2.10.1 https://github.com/oceanbase/obd-doc.git
-cd ..
+git clone --single-branch --branch V4.3.4 https://github.com/oceanbase/oceanbase-doc.git doc_repos/oceanbase-doc
 ```
 
 #### 5.2 Document Format Standardization
@@ -304,19 +301,16 @@ Since some files in OceanBase's open-source documentation use `====` and `----` 
 
 ```bash
 # Convert document headings to standard markdown format
-poetry run python convert_headings.py \
-  doc_repos/oceanbase-doc/zh-CN \
-  doc_repos/obd-doc/zh-CN
+poetry run python convert_headings.py doc_repos/oceanbase-doc/zh-CN
 ```
 
 #### 5.3 Convert Documents to Vectors and Insert into OceanBase
 
 We provide the `embed_docs.py` script which, when given a document directory and corresponding component, will traverse all markdown documents in the directory, split long documents into chunks, convert them into vectors using the embedding model, and finally insert the document chunk content, embedded vectors, and chunk metadata (in JSON format, including document title, relative path, component name, chunk title, cascading titles) together into the same table in OceanBase, ready for querying.
 
-```python
+```bash
 # Generate document vectors and metadata
-poetry run python embed_docs.py --doc_base doc_repos/oceanbase-doc/zh-CN
-poetry run python embed_docs.py --doc_base doc_repos/obd-doc/zh-CN --component obd
+poetry run python embed_docs.py --doc_base doc_repos/oceanbase-doc/zh-CN/640.ob-vector-search
 ```
 
 While waiting for the text processing, we can examine the contents of `embed_docs.py` to see how it works.

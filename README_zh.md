@@ -292,10 +292,7 @@ bash utils/connect_db.sh
 首先我们将使用 git 克隆 observer 和 obd 两个项目的文档到本地。
 
 ```bash
-cd doc_repos
-git clone --single-branch --branch V4.3.3 https://github.com/oceanbase/oceanbase-doc.git
-git clone --single-branch --branch V2.10.1 https://github.com/oceanbase/obd-doc.git
-cd ..
+git clone --single-branch --branch V4.3.4 https://github.com/oceanbase/oceanbase-doc.git doc_repos/oceanbase-doc
 ```
 
 #### 5.2 文档格式标准化
@@ -304,19 +301,16 @@ cd ..
 
 ```bash
 # 把文档的标题转换为标准的 markdown 格式
-poetry run python convert_headings.py \
-  doc_repos/oceanbase-doc/zh-CN \
-  doc_repos/obd-doc/zh-CN
+poetry run python convert_headings.py doc_repos/oceanbase-doc/zh-CN
 ```
 
 #### 5.3 将文档转换为向量并插入 OceanBase 数据库
 
 我们提供了 `embed_docs.py` 脚本，通过指定文档目录和对应的组件后，该脚本就会遍历目录中的所有 markdown 格式的文档，将长文档进行切片后使用嵌入模型转换为向量，并最终将文档切片的内容、嵌入的向量和切片的元信息（JSON 格式，包含文档标题、相对路径、组件名称、切片标题、级联标题）一同插入到 OceanBase 的同一张表中，作为预备数据待查。
 
-```python
+```bash
 # 生成文档向量和元数据
-poetry run python embed_docs.py --doc_base doc_repos/oceanbase-doc/zh-CN
-poetry run python embed_docs.py --doc_base doc_repos/obd-doc/zh-CN --component obd
+poetry run python embed_docs.py --doc_base doc_repos/oceanbase-doc/zh-CN/640.ob-vector-search
 ```
 
 在等待文本处理的过程中我们可以浏览 `embed_docs.py` 的内容，观察它是如何工作的。

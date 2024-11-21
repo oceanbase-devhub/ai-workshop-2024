@@ -78,11 +78,11 @@ def doc_search_by_vector(
 supported_components = cm.keys()
 
 replacers = [
-    (r"^.*oceanbase-doc", "https://github.com/oceanbase/oceanbase-doc/blob/V4.3.3"),
+    (r"^.*oceanbase-doc", "https://github.com/oceanbase/oceanbase-doc/blob/V4.3.4"),
     (r"^.*ocp-doc", "https://github.com/oceanbase/ocp-doc/blob/V4.3.0"),
     (r"^.*odc-doc", "https://github.com/oceanbase/odc-doc/blob/V4.3.1"),
     (r"^.*oms-doc", "https://github.com/oceanbase/oms-doc/blob/V4.2.5"),
-    (r"^.*obd-doc", "https://github.com/oceanbase/obd-doc/blob/V2.10.0"),
+    (r"^.*obd-doc", "https://github.com/oceanbase/obd-doc/blob/V2.10.1"),
     (
         r"^.*oceanbase-proxy-doc",
         "https://github.com/oceanbase/oceanbase-proxy-doc/blob/V4.3.0",
