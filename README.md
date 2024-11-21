@@ -51,8 +51,8 @@ Vector retrieval is a technique for quickly finding the most similar vectors to 
 
 - Search based on vector distance (e.g., Euclidean distance) or similarity (e.g., cosine similarity)
 - Typically uses Approximate Nearest Neighbor (ANN) algorithms to improve retrieval efficiency
-- Common ANN algorithms include HNSW, IVF, etc., with OceanBase 4.3.3 supporting the HNSW algorithm
-- Can quickly find the most similar results from millions or even billions of vectors
+- OceanBase 4.3.3 supports the HNSW algorithm, which is a high-performance ANN algorithm
+- ANN can quickly find the most similar results approximately from millions or even billions of vectors
 - Compared to traditional keyword search, vector retrieval better understands semantic similarity
 
 OceanBase has added excellent support for "vector" as a data type in its relational database model, enabling efficient storage and retrieval of both vector data and conventional structured data in a single database. In this project, we use OceanBase's HNSW (Hierarchical Navigable Small World) vector index to implement efficient vector retrieval, helping us quickly find the most relevant document fragments for user questions.
