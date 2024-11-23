@@ -78,7 +78,7 @@ def doc_search_by_vector(
 supported_components = cm.keys()
 
 replacers = [
-    (r"^.*oceanbase-doc", "https://github.com/oceanbase/oceanbase-doc/blob/V4.3.4"),
+    (r"^.*oceanbase-doc", "https://gitee.com/oceanbase-devhub/oceanbase-doc/blob/V4.3.4"),
     (r"^.*ocp-doc", "https://github.com/oceanbase/ocp-doc/blob/V4.3.0"),
     (r"^.*odc-doc", "https://github.com/oceanbase/odc-doc/blob/V4.3.1"),
     (r"^.*oms-doc", "https://github.com/oceanbase/oms-doc/blob/V4.2.5"),

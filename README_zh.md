@@ -293,8 +293,8 @@ bash utils/connect_db.sh
 
 ```bash
 git clone --single-branch --branch V4.3.4 https://github.com/oceanbase/oceanbase-doc.git doc_repos/oceanbase-doc
-# 如果你访问 Github 仓库速度较慢，可以使用以下命令克隆 Gitee 的镜像版本
-# git clone --single-branch --branch V4.3.4 https://gitee.com/oceanbase-devhub/oceanbase-doc.git doc_repos/oceanbase-doc
+# 如果您访问 Github 仓库速度较慢，可以使用以下命令克隆 Gitee 的镜像版本
+git clone --single-branch --branch V4.3.4 https://gitee.com/oceanbase-devhub/oceanbase-doc.git doc_repos/oceanbase-doc
 ```
 
 #### 5.2 文档格式标准化

@@ -294,7 +294,7 @@ First, we'll use git to clone the documentation for the observer and obd project
 ```bash
 git clone --single-branch --branch V4.3.4 https://github.com/oceanbase/oceanbase-doc.git doc_repos/oceanbase-doc
 # If your network is slow when accessing GitHub, you can use the following command to clone the repository from Gitee
-# git clone --single-branch --branch V4.3.4 https://gitee.com/oceanbase-devhub/oceanbase-doc.git doc_repos/oceanbase-doc
+git clone --single-branch --branch V4.3.4 https://gitee.com/oceanbase-devhub/oceanbase-doc.git doc_repos/oceanbase-doc
 ```
 
 #### 5.2 Document Format Standardization
