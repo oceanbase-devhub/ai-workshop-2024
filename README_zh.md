@@ -94,9 +94,9 @@ RAG 的主要优势有：
 
 2. 安装 [Poetry](https://python-poetry.org/docs/)，可参考命令 `python3 -m pip install poetry`
 
-3. 安装 [Docker](https://docs.docker.com/engine/install/)
+3. 安装 [Docker](https://docs.docker.com/engine/install/)（可选，如果您计划使用 Docker 在本地部署 OceanBase 数据库则必须安装）
 
-4. 安装 MySQL 客户端，可参考 `yum install -y mysql` 或者 `apt-get install -y mysql-client`
+4. 安装 MySQL 客户端，可参考 `yum install -y mysql` 或者 `apt-get install -y mysql-client`（可选，如果您需要使用 MySQL 客户端检验数据库连接则必须安装）
 
 5. 确保您机器上该项目的代码是最新的状态，建议进入项目目录执行 `git pull`
 

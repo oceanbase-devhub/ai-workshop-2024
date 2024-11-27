@@ -94,9 +94,9 @@ Notes: If you are participating in the OceanBase AI Workshop, you can skip steps
 
 2. Install [Poetry](https://python-poetry.org/docs/) with command `python3 -m pip install poetry`
 
-3. Install [Docker](https://docs.docker.com/engine/install/)
+3. Install [Docker](https://docs.docker.com/engine/install/) (Optional, only required if you want to run OceanBase in a Docker container)
 
-4. Install MySQL client, using `yum install -y mysql` or `apt-get install -y mysql-client`
+4. Install MySQL client, using `yum install -y mysql` or `apt-get install -y mysql-client` (Optional, only required if you want to test database connection with MySQL client)
 
 5. Ensure your project code is up to date, recommended to run `git pull` in the project directory
 
