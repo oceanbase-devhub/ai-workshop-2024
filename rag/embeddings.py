@@ -73,7 +73,11 @@ class RemoteOpenAI(Embeddings):
         """
         res = requests.post(
             f"{self._base_url}",
-            headers={"Authorization": f"Bearer {self._api_key}"},
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+                "Charset": "UTF-8",
+            },
             json={
                 "input": texts,
                 "model": self._model,
