@@ -100,7 +100,11 @@ Notes: If you are participating in the OceanBase AI Workshop, you can skip steps
 
 5. Ensure your project code is up to date, recommended to run `git pull` in the project directory
 
-6. Register an [Alibaba Cloud Bailian](https://bailian.console.aliyun.com/) account and obtain API Key
+6. Register an [Alibaba Cloud Bailian](https://bailian.console.aliyun.com/) account, activate model service and obtain API Key
+
+![Activate Model Service](./demo/activate-models.png)
+
+![Confirm to Activate Model Service](./demo/confirm-to-activate-models.png)
 
 ![Alibaba Cloud Bailian](./demo/dashboard.png)
 
@@ -247,7 +251,7 @@ cp .env.example .env
 vi .env
 ```
 
-The content of `.env.example` is as follows, you only need to update the `API_KEY` and `OPENAI_EMBEDDING_API_KEY` with the value you get from the Bailian dashboard if you are following the workshop steps which will take LLMs from Tongyi Qwen. If you are using the OB Cloud instance, update the database-related environment variables accordingly. After updating the `.env` file, save and exit the editor.
+The content of `.env.example` is as follows, you only need to update the `API_KEY` and `OPENAI_EMBEDDING_API_KEY` with the value you get from the Bailian dashboard if you are following the workshop steps which will take LLMs from Tongyi Qwen. If you are using the OB Cloud instance, update the database-related environment variables starting with `DB_` accordingly. After updating the `.env` file, save and exit the editor.
 
 ```bash
 API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # Fill your API Key
@@ -309,6 +313,8 @@ poetry run python convert_headings.py doc_repos/oceanbase-doc/zh-CN
 #### 5.3 Convert Documents to Vectors and Insert into OceanBase
 
 We provide the `embed_docs.py` script which, when given a document directory and corresponding component, will traverse all markdown documents in the directory, split long documents into chunks, convert them into vectors using the embedding model, and finally insert the document chunk content, embedded vectors, and chunk metadata (in JSON format, including document title, relative path, component name, chunk title, cascading titles) together into the same table in OceanBase, ready for querying.
+
+In order to save time, we will only process a few documents related to vector retrieval. After opening the chat interface in step 6, the questions you ask about vector retrieval functionality of OceanBase will receive more accurate answers.
 
 ```bash
 # Generate document vectors and metadata

@@ -100,7 +100,11 @@ RAG 的主要优势有：
 
 5. 确保您机器上该项目的代码是最新的状态，建议进入项目目录执行 `git pull`
 
-6. 注册[阿里云百炼](https://bailian.console.aliyun.com/)账号并获取 API Key
+6. 注册[阿里云百炼](https://bailian.console.aliyun.com/)账号，开通模型服务并获取 API Key
+
+![点击开通模型服务](./demo/activate-models.png)
+
+![确认开通模型服务](./demo/confirm-to-activate-models.png)
 
 ![阿里云百炼](./demo/dashboard.png)
 
@@ -247,7 +251,7 @@ cp .env.example .env
 vi .env
 ```
 
-`.env.example` 文件的内容如下，如果您正在按照动手实战营的步骤进行操作（使用通义千问提供的 LLM 能力），您需要把 `API_KEY` 和 `OPENAI_EMBEDDING_API_KEY` 更新为您从阿里云百炼控制台获取的 API KEY 值，如果您使用 OB Cloud 的数据库实例，请将 DB_ 开头的变量更新为您的数据库连接信息，然后保存文件。
+`.env.example` 文件的内容如下，如果您正在按照动手实战营的步骤进行操作（使用通义千问提供的 LLM 能力），您需要把 `API_KEY` 和 `OPENAI_EMBEDDING_API_KEY` 更新为您从阿里云百炼控制台获取的 API KEY 值，如果您使用 OB Cloud 的数据库实例，请将 `DB_` 开头的变量更新为您的数据库连接信息，然后保存文件。
 
 ```bash
 API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # 填写 API Key
@@ -309,6 +313,8 @@ poetry run python convert_headings.py doc_repos/oceanbase-doc/zh-CN
 #### 5.3 将文档转换为向量并插入 OceanBase 数据库
 
 我们提供了 `embed_docs.py` 脚本，通过指定文档目录和对应的组件后，该脚本就会遍历目录中的所有 markdown 格式的文档，将长文档进行切片后使用嵌入模型转换为向量，并最终将文档切片的内容、嵌入的向量和切片的元信息（JSON 格式，包含文档标题、相对路径、组件名称、切片标题、级联标题）一同插入到 OceanBase 的同一张表中，作为预备数据待查。
+
+为了节省时间，我们只处理 OceanBase 众多文档中与向量检索有关的几篇文档，在第 6 步打开聊天界面之后，您针对 OceanBase 的向量检索功能进行的提问将得到较为准确的回答。
 
 ```bash
 # 生成文档向量和元数据
