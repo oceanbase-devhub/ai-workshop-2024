@@ -85,14 +85,14 @@ class RemoteOpenAI(Embeddings):
                 "dimensions": self._dimensions,
             },
         )
-        data = res.json()
         embeddings = []
         try:
+            data = res.json()
             for d in data["data"]:
                 embeddings.append(d["embedding"][: self._dimensions])
             return embeddings
         except Exception as e:
-            print(data)
+            print("Invalid response:", res.text)
             print("Error", e)
             raise e
 

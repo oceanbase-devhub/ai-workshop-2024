@@ -24,7 +24,7 @@ embeddings = get_embedding(
     ollama_url=os.getenv("OLLAMA_URL") or None,
     ollama_token=os.getenv("OLLAMA_TOKEN") or None,
     base_url=os.getenv("OPENAI_EMBEDDING_BASE_URL") or None,
-    api_key=os.getenv("OPENAI_EMBEDDING_API_KEY") or None,
+    api_key=os.getenv("OPENAI_EMBEDDING_API_KEY") or os.getenv("API_KEY") or None,
     model=os.getenv("OPENAI_EMBEDDING_MODEL") or None,
 )
 
