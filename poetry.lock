@@ -2290,13 +2290,13 @@ reference = "aliyun"
 
 [[package]]
 name = "pyobvector"
-version = "0.1.7"
+version = "0.1.14"
 description = "A python SDK for OceanBase Vector Store, based on SQLAlchemy, compatible with Milvus API."
 optional = false
 python-versions = ">=3.9,<4.0"
 files = [
-    {file = "pyobvector-0.1.7-py3-none-any.whl", hash = "sha256:4fdee5a6235d7693cd29f87ecde23100b1fc8ec3733fb6ea9837f33c953934fb"},
-    {file = "pyobvector-0.1.7.tar.gz", hash = "sha256:759df81ff7500c83683a736cacd3a4affdc910da18d37166aa725783a4868c89"},
+    {file = "pyobvector-0.1.14-py3-none-any.whl", hash = "sha256:828e0bec49a177355b70c7a1270af3b0bf5239200ee0d096e4165b267eeff97c"},
+    {file = "pyobvector-0.1.14.tar.gz", hash = "sha256:4f85cdd63064d040e94c0a96099a0cd5cda18ce625865382e89429f28422fc02"},
 ]
 
 [package.dependencies]
@@ -3298,4 +3298,4 @@ reference = "aliyun"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.9.7 || >3.9.7,<4.0"
-content-hash = "1d2db2d6000c19d2dc66d2e5b1a03cbf87a863b91dc3afd14274825fcc58a01e"
+content-hash = "c2ceec8ce1d7c1eb691d75d074731c5eac3c11c84a80570a2573bb1bf96dd7c5"
