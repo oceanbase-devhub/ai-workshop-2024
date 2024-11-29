@@ -293,7 +293,7 @@ bash utils/connect_db.sh
 
 #### 5.1 克隆文档仓库
 
-首先我们将使用 git 克隆 observer 和 obd 两个项目的文档到本地。
+首先我们将使用 git 克隆 oceanbase 的文档到本地。
 
 ```bash
 git clone --single-branch --branch V4.3.4 https://github.com/oceanbase/oceanbase-doc.git doc_repos/oceanbase-doc

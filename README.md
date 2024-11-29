@@ -293,7 +293,7 @@ In this step, we will clone the open-source documentation repositories of OceanB
 
 #### 5.1 Clone Document Repositories
 
-First, we'll use git to clone the documentation for the observer and obd projects locally.
+First, we'll use git to clone the documentation for the oceanbase project locally.
 
 ```bash
 git clone --single-branch --branch V4.3.4 https://github.com/oceanbase/oceanbase-doc.git doc_repos/oceanbase-doc
