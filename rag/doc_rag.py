@@ -18,7 +18,7 @@ from agents.comp_analyzing_agent import prompt as caa_prompt
 from connection import connection_args
 from sqlalchemy import Column, Integer
 
-from langchain_community.vectorstores import OceanBase
+from langchain_oceanbase.vectorstores import OceanbaseVectorStore
 
 embeddings = get_embedding(
     ollama_url=os.getenv("OLLAMA_URL") or None,
@@ -29,7 +29,7 @@ embeddings = get_embedding(
 )
 
 
-vs = OceanBase(
+vs = OceanbaseVectorStore(
     embedding_function=embeddings,
     table_name=os.getenv("TABLE_NAME", "corpus"),
     connection_args=connection_args,

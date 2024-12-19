@@ -6,7 +6,7 @@ import glob
 from typing import Iterator, Union
 
 import dotenv
-from langchain_community.vectorstores import OceanBase
+from langchain_oceanbase.vectorstores import OceanbaseVectorStore
 from langchain_core.messages import BaseMessageChunk
 from pydantic import BaseModel
 from sqlalchemy import create_engine, text
@@ -293,7 +293,7 @@ elif st.session_state.step == 2:
         accept_multiple_files=True,
         type=["md"],
     )
-    vs = OceanBase(
+    vs = OceanbaseVectorStore(
         embedding_function=embeddings,
         table_name=st.session_state.table,
         connection_args=c,
@@ -384,7 +384,7 @@ elif st.session_state.step == 3:
         avatar = "🤖" if msg["role"] == "assistant" else "👨🏻‍💻"
         st.chat_message(msg["role"], avatar=avatar).write(msg["content"])
 
-    vs = OceanBase(
+    vs = OceanbaseVectorStore(
         embedding_function=embeddings,
         table_name=st.session_state.table,
         connection_args=st.session_state.connection,
