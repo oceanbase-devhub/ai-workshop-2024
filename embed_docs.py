@@ -5,7 +5,7 @@ import dotenv
 
 dotenv.load_dotenv()
 
-from langchain_community.vectorstores import OceanBase
+from langchain_oceanbase.vectorstores import OceanbaseVectorStore
 from langchain_core.documents import Document
 from rag.embeddings import get_embedding
 from rag.documents import MarkdownDocumentsLoader, component_mapping as cm
@@ -68,7 +68,7 @@ embeddings = get_embedding(
     model=os.getenv("OPENAI_EMBEDDING_MODEL") or None,
 )
 
-vs = OceanBase(
+vs = OceanbaseVectorStore(
     embedding_function=embeddings,
     table_name=args.table_name,
     connection_args=connection_args,
